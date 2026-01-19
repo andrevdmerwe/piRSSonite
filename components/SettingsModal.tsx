@@ -12,16 +12,22 @@ interface SettingsModalProps {
 export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'appearance' | 'feeds'>('appearance')
   const [articleWidth, setArticleWidth] = useState(700)
+  const [hideEmptyFeeds, setHideEmptyFeeds] = useState(false)
 
-  // Load article width from localStorage
+  // Load settings from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('pirssonite_card_max_width')
-      if (saved) {
-        setArticleWidth(parseInt(saved))
+      const savedWidth = localStorage.getItem('pirssonite_card_max_width')
+      if (savedWidth) {
+        setArticleWidth(parseInt(savedWidth))
+      }
+
+      const savedHideEmpty = localStorage.getItem('pirssonite_hide_empty_feeds')
+      if (savedHideEmpty) {
+        setHideEmptyFeeds(savedHideEmpty === 'true')
       }
     } catch (error) {
-      console.error('Failed to load article width:', error)
+      console.error('Failed to load settings:', error)
     }
   }, [isOpen])
 
@@ -34,6 +40,18 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
       window.dispatchEvent(new Event('articleWidthChanged'))
     } catch (error) {
       console.error('Failed to save article width:', error)
+    }
+  }
+
+  // Save hide empty feeds setting to localStorage
+  const handleHideEmptyFeedsChange = (value: boolean) => {
+    setHideEmptyFeeds(value)
+    try {
+      localStorage.setItem('pirssonite_hide_empty_feeds', value.toString())
+      // Dispatch event to notify Sidebar of the change
+      window.dispatchEvent(new Event('hideEmptyFeedsChanged'))
+    } catch (error) {
+      console.error('Failed to save hide empty feeds setting:', error)
     }
   }
 
@@ -116,6 +134,26 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
                 <span>400px (narrow)</span>
                 <span>1200px (wide)</span>
               </div>
+            </div>
+
+            {/* Hide Empty Feeds Setting */}
+            <div>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hideEmptyFeeds}
+                  onChange={(e) => handleHideEmptyFeedsChange(e.target.checked)}
+                  className="w-4 h-4 rounded border-2 border-text-muted bg-bg-accent checked:bg-accent-cyan checked:border-accent-cyan cursor-pointer"
+                />
+                <div>
+                  <span className="text-sm font-medium text-text-primary">
+                    hide_empty_feeds
+                  </span>
+                  <p className="text-xs text-text-muted mt-1">
+                    hide feeds and folders with no unread items from the sidebar
+                  </p>
+                </div>
+              </label>
             </div>
 
             {/* Preview */}

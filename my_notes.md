@@ -31,3 +31,8 @@
   - Use @dnd-kit (already installed)
   - Drag within/between folders
   - New API endpoint for persistence
+
+
+  Add a "sticky" heading to the article reading pane, with the following info.
+  1. The selected folder or the selected feed
+  2. The unread count. ensure the counter matches whats in the folder / feed pane.

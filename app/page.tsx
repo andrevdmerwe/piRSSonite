@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Sidebar from '@/components/Sidebar'
 import EntryFeed from '@/components/EntryFeed'
 
@@ -10,6 +10,73 @@ export default function Home() {
   // - positive: specific feed
   // - negative: folder (absolute value is folderId)
   const [selectedFeedId, setSelectedFeedId] = useState<number | undefined>(undefined)
+  const [sidebarWidth, setSidebarWidth] = useState(288)
+  const [isResizing, setIsResizing] = useState(false)
+  const startXRef = useRef(0)
+  const startWidthRef = useRef(288)
+
+  // Load sidebar width from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('pirssonite_sidebar_width')
+      if (saved) {
+        const width = parseInt(saved)
+        setSidebarWidth(width)
+        startWidthRef.current = width
+      }
+    } catch (error) {
+      console.error('Failed to load sidebar width:', error)
+    }
+  }, [])
+
+  // Handle resize start
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+    startXRef.current = e.clientX
+    startWidthRef.current = sidebarWidth
+  }
+
+  // Handle resize move and end
+  useEffect(() => {
+    if (!isResizing) return
+
+    // Prevent text selection during drag
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const delta = e.clientX - startXRef.current
+      const newWidth = startWidthRef.current + delta
+
+      // Apply constraints: min 200px, max 500px
+      const constrainedWidth = Math.min(Math.max(newWidth, 200), 500)
+      setSidebarWidth(constrainedWidth)
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      // Restore cursor and text selection
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      // Save to localStorage
+      try {
+        localStorage.setItem('pirssonite_sidebar_width', sidebarWidth.toString())
+      } catch (error) {
+        console.error('Failed to save sidebar width:', error)
+      }
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }, [isResizing, sidebarWidth])
 
   // Convert to feedId/folderId for EntryFeed
   const feedId = selectedFeedId !== undefined && selectedFeedId > 0 ? selectedFeedId : undefined
@@ -17,11 +84,21 @@ export default function Home() {
 
   return (
     <main className="flex h-screen overflow-hidden">
-      <Sidebar
-        onFeedSelect={(feedId) => setSelectedFeedId(feedId === 0 ? undefined : feedId)}
-        onFolderSelect={(folderId) => setSelectedFeedId(-folderId)}
-        selectedFeedId={selectedFeedId}
-      />
+      <div className="relative" style={{ width: `${sidebarWidth}px` }}>
+        <Sidebar
+          onFeedSelect={(feedId) => setSelectedFeedId(feedId === 0 ? undefined : feedId)}
+          onFolderSelect={(folderId) => setSelectedFeedId(-folderId)}
+          selectedFeedId={selectedFeedId}
+        />
+        {/* Resize Handle */}
+        <div
+          onMouseDown={handleResizeStart}
+          className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-accent-border transition-colors ${
+            isResizing ? 'bg-accent-cyan' : ''
+          }`}
+          style={{ userSelect: 'none' }}
+        />
+      </div>
       <div className="flex-1 overflow-y-auto p-6">
         <EntryFeed feedId={feedId} folderId={folderId} />
       </div>

@@ -28,6 +28,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
   const [folders, setFolders] = useState<Folder[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [expandedFolders, setExpandedFolders] = useState<Record<number, boolean>>({})
+  const [hideEmptyFeeds, setHideEmptyFeeds] = useState(false)
   const { counts } = useUnreadCounts()
 
   const fetchFeeds = () => {
@@ -59,8 +60,31 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
       if (saved) {
         setExpandedFolders(JSON.parse(saved))
       }
+
+      // Load hide empty feeds setting
+      const savedHideEmpty = localStorage.getItem('pirssonite_hide_empty_feeds')
+      if (savedHideEmpty) {
+        setHideEmptyFeeds(savedHideEmpty === 'true')
+      }
     } catch (error) {
-      console.error('Failed to load folder state:', error)
+      console.error('Failed to load settings:', error)
+    }
+
+    // Listen for hide empty feeds changes from settings modal
+    const handleHideEmptyFeedsChange = () => {
+      try {
+        const savedHideEmpty = localStorage.getItem('pirssonite_hide_empty_feeds')
+        if (savedHideEmpty) {
+          setHideEmptyFeeds(savedHideEmpty === 'true')
+        }
+      } catch (error) {
+        console.error('Failed to load hide empty feeds setting:', error)
+      }
+    }
+
+    window.addEventListener('hideEmptyFeedsChanged', handleHideEmptyFeedsChange)
+    return () => {
+      window.removeEventListener('hideEmptyFeedsChanged', handleHideEmptyFeedsChange)
     }
   }, [])
 
@@ -109,14 +133,28 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
     return expandedFolders[folderId] !== false
   }
 
-  const rootFeeds = feeds.filter((f) => f.folderId === null)
-  const feedsByFolder = folders.map((folder) => ({
+  // Filter feeds and folders based on hideEmptyFeeds setting
+  let rootFeeds = feeds.filter((f) => f.folderId === null)
+  let feedsByFolder = folders.map((folder) => ({
     folder,
     feeds: feeds.filter((f) => f.folderId === folder.id),
   }))
 
+  if (hideEmptyFeeds) {
+    // Filter out feeds with no unread items
+    rootFeeds = rootFeeds.filter((feed) => getUnreadCount(feed.id) > 0)
+
+    // Filter out folders with no unread items and filter feeds within folders
+    feedsByFolder = feedsByFolder
+      .map((folderData) => ({
+        ...folderData,
+        feeds: folderData.feeds.filter((feed) => getUnreadCount(feed.id) > 0),
+      }))
+      .filter((folderData) => getFolderUnreadCount(folderData.folder.id) > 0)
+  }
+
   return (
-    <aside className="w-72 bg-bg-panel border-r border-border-soft p-4 overflow-y-auto h-screen">
+    <aside className="w-full bg-bg-panel border-r border-border-soft p-4 overflow-y-auto h-screen">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between mb-1">
