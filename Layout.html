@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Feed Reader – Dark UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg-main: #1e1e2e;
+      --bg-panel: #232335;
+      --bg-card: #2a2a40;
+      --bg-accent: #313155;
+
+      --text-primary: #e6e6f0;
+      --text-secondary: #a7a7c2;
+      --text-muted: #7a7aa3;
+
+      --accent-cyan: #3fd0d4;
+      --accent-purple: #b38df6;
+      --accent-border: #8a6fd1;
+
+      --badge-bg: #3a3a5a;
+      --border-soft: rgba(255,255,255,0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      height: 100vh;
+    }
+
+    /* ========== SIDEBAR ========== */
+    .sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-soft);
+      padding: 16px 12px;
+      overflow-y: auto;
+    }
+
+    .sidebar h4 {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 18px 8px 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .nav-item.active {
+      background: var(--bg-accent);
+      color: var(--accent-cyan);
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .count {
+      font-size: 11px;
+      background: var(--badge-bg);
+      padding: 2px 6px;
+      border-radius: 999px;
+      color: var(--text-primary);
+    }
+
+    .feed-group {
+      margin-bottom: 6px;
+    }
+
+    .feed {
+      padding-left: 18px;
+      font-size: 13px;
+    }
+
+    /* ========== MAIN CONTENT ========== */
+    .main {
+      padding: 20px 24px;
+      overflow-y: auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .header-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-actions button {
+      background: var(--bg-accent);
+      border: 1px solid var(--border-soft);
+      color: var(--text-primary);
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+
+    .header-actions button.primary {
+      background: var(--accent-cyan);
+      color: #0b2f33;
+      border: none;
+      font-weight: 600;
+    }
+
+    /* ========== CARDS ========== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--accent-border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 0 0 1px rgba(138,111,209,0.15);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      background: var(--badge-bg);
+      color: var(--accent-purple);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .card h2 {
+      font-size: 16px;
+      margin: 6px 0 8px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .card p {
+      margin: 0 0 12px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tag {
+      font-size: 11px;
+      background: rgba(63,208,212,0.15);
+      color: var(--accent-cyan);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .action {
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .action:hover {
+      color: var(--accent-cyan);
+    }
+
+    /* ========== SCROLLBAR (optional polish) ========== */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #3a3a55;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h4>Views</h4>
+    <div class="nav-item active">
+      <span>all_items</span>
+      <span class="count">1082</span>
+    </div>
+    <div class="nav-item">
+      <span>unread</span>
+    </div>
+    <div class="nav-item">
+      <span>starred</span>
+    </div>
+
+    <h4>Feeds</h4>
+
+    <div class="feed-group">
+      <div class="nav-item">
+        <span>3d_printing</span>
+        <span class="count">198</span>
+      </div>
+      <div class="nav-item feed">3d_printing_progress <span class="count">15</span></div>
+      <div class="nav-item feed">functionalprints <span class="count">25</span></div>
+    </div>
+
+    <div class="feed-group">
+      <div class="nav-item">
+        <span>all_things_blades</span>
+        <span class="count">27</span>
+      </div>
+      <div class="nav-item feed">knife_informer <span class="count">12</span></div>
+      <div class="nav-item feed">knifenews <span class="count">15</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="header">
+      <div>
+        <h1>all_items</h1>
+        <div class="header-meta">
+          Found <strong>490</strong> entries · <strong>490</strong> unread
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="primary">all</button>
+        <button>unread</button>
+        <button>✓ mark_all_read</button>
+      </div>
+    </div>
+
+    <!-- CARD -->
+    <article class="card">
+      <div class="card-header">
+        <span class="badge">unread</span>
+        <span>Business Intelligence and Analytics</span>
+        <span>· in 4 months</span>
+      </div>
+      <h2>Governing the Decision: Accountability in AI-Assisted Intelligence</h2>
+      <p>
+        Decision intelligence promises to augment human judgment with AI-derived insight, but governance frameworks
+        have not kept pace. When an AI system contributes to a decision, who is accountable for the outcome?
+      </p>
+      <div class="card-footer">
+        <span class="tag">RSS</span>
+        <span class="action">mark_as_read</span>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-header">
+        <span class="badge">unread</span>
+        <span>Business Intelligence and Analytics</span>
+        <span>· about 1 month</span>
+      </div>
+      <h2>Architecting AI Governance: Federated Models That Scale</h2>
+      <p>
+        Centralized governance creates friction, while decentralized models create inconsistency.
+        This session explores federated architectures that balance control and autonomy.
+      </p>
+      <div class="card-footer">
+        <span class="tag">RSS</span>
+        <span class="action">mark_as_read</span>
+      </div>
+    </article>
+
+  </main>
+
+</div>
+
+</body>
+</html>

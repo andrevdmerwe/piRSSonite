@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./main.db"
+}
+
+model Folder {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  order Int    @default(0)
+  feeds Feed[]
+}
+
+model Feed {
+  id                 Int                  @id @default(autoincrement())
+  url                String               @unique
+  title              String
+  folderId           Int?
+  folder             Folder?              @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  lastFetched        DateTime?
+  nextCheckAt        DateTime             @default(now())
+  failureCount       Int                  @default(0)
+  isAvailable        Boolean              @default(true)
+  order              Int                  @default(0)
+  websubHub          String?
+  websubTopic        String?
+  entries            Entry[]
+  webSubSubscription WebSubSubscription?
+
+  @@index([nextCheckAt])
+}
+
+model Entry {
+  id        Int      @id @default(autoincrement())
+  url       String
+  title     String
+  content   String
+  published DateTime
+  feedId    Int
+  feed      Feed     @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  isRead    Boolean  @default(false)
+  isStarred Boolean  @default(false)
+
+  @@unique([feedId, url])
+  @@index([feedId, isRead])
+  @@index([isStarred])
+}
+
+model Config {
+  key   String @id
+  value String
+}
+
+model WebSubSubscription {
+  id           Int      @id @default(autoincrement())
+  feedId       Int      @unique
+  feed         Feed     @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  hubUrl       String
+  topicUrl     String
+  secret       String
+  leaseSeconds Int
+  expiresAt    DateTime
+  isActive     Boolean  @default(true)
+  lastError    String?
+  errorCount   Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([expiresAt, isActive])
+  @@index([feedId])
+}
