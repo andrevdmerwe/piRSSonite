@@ -26,6 +26,33 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [cardWidth, setCardWidth] = useState(700)
+
+  // Load article width from localStorage
+  useEffect(() => {
+    const loadWidth = () => {
+      try {
+        const saved = localStorage.getItem('pirssonite_card_max_width')
+        if (saved) {
+          setCardWidth(parseInt(saved))
+        }
+      } catch (error) {
+        console.error('Failed to load article width:', error)
+      }
+    }
+
+    loadWidth()
+
+    // Listen for width changes from settings modal
+    const handleWidthChange = () => {
+      loadWidth()
+    }
+
+    window.addEventListener('articleWidthChanged', handleWidthChange)
+    return () => {
+      window.removeEventListener('articleWidthChanged', handleWidthChange)
+    }
+  }, [])
 
   useEffect(() => {
     const fetchEntries = async () => {
@@ -60,7 +87,7 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64">
         <div className="text-text-secondary">loading_entries...</div>
       </div>
     )
@@ -68,7 +95,7 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64">
         <div className="text-red-400">Error: {error}</div>
       </div>
     )
@@ -78,7 +105,7 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
 
   if (entries.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64">
         <div className="text-text-muted">no_entries_found</div>
       </div>
     )
@@ -86,14 +113,14 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
 
   if (unreadEntries.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64">
         <div className="text-text-muted">no_unread_feeds</div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto space-y-4">
       {unreadEntries.map((entry) => (
         <ArticleCard key={entry.id} entry={entry} />
       ))}

@@ -27,6 +27,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
   const [feeds, setFeeds] = useState<Feed[]>([])
   const [folders, setFolders] = useState<Folder[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [expandedFolders, setExpandedFolders] = useState<Record<number, boolean>>({})
   const { counts } = useUnreadCounts()
 
   const fetchFeeds = () => {
@@ -51,7 +52,26 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
   useEffect(() => {
     fetchFolders()
     fetchFeeds()
+
+    // Load folder expanded state from localStorage
+    try {
+      const saved = localStorage.getItem('pirssonite_folder_state')
+      if (saved) {
+        setExpandedFolders(JSON.parse(saved))
+      }
+    } catch (error) {
+      console.error('Failed to load folder state:', error)
+    }
   }, [])
+
+  // Save folder state to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('pirssonite_folder_state', JSON.stringify(expandedFolders))
+    } catch (error) {
+      console.error('Failed to save folder state:', error)
+    }
+  }, [expandedFolders])
 
   const getUnreadCount = (feedId: number) => {
     return counts?.byFeed[feedId] || 0
@@ -59,6 +79,34 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
 
   const getFolderUnreadCount = (folderId: number) => {
     return counts?.byFolder[folderId] || 0
+  }
+
+  const toggleFolder = (folderId: number) => {
+    setExpandedFolders((prev) => ({
+      ...prev,
+      [folderId]: !prev[folderId],
+    }))
+  }
+
+  const expandAllFolders = () => {
+    const allExpanded: Record<number, boolean> = {}
+    folders.forEach((folder) => {
+      allExpanded[folder.id] = true
+    })
+    setExpandedFolders(allExpanded)
+  }
+
+  const collapseAllFolders = () => {
+    const allCollapsed: Record<number, boolean> = {}
+    folders.forEach((folder) => {
+      allCollapsed[folder.id] = false
+    })
+    setExpandedFolders(allCollapsed)
+  }
+
+  const isFolderExpanded = (folderId: number) => {
+    // Default to expanded if not set
+    return expandedFolders[folderId] !== false
   }
 
   const rootFeeds = feeds.filter((f) => f.folderId === null)
@@ -107,7 +155,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
         >
           <span>all_items</span>
           {counts && counts.total > 0 && (
-            <span className="text-xs text-text-muted">
+            <span className="text-xs font-semibold bg-accent-purple bg-opacity-20 text-accent-purple px-2 py-0.5 rounded-full">
               {counts.total}
             </span>
           )}
@@ -116,9 +164,29 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
 
       {/* Folders and Feeds */}
       <div>
-        <h4 className="text-xs uppercase tracking-wider text-text-muted mb-2">
-          feeds
-        </h4>
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-xs uppercase tracking-wider text-text-muted">
+            feeds
+          </h4>
+          {folders.length > 0 && (
+            <div className="flex items-center gap-2 text-text-muted text-xs">
+              <button
+                onClick={expandAllFolders}
+                className="hover:text-accent-cyan transition-colors"
+                title="Expand all folders"
+              >
+                [+]
+              </button>
+              <button
+                onClick={collapseAllFolders}
+                className="hover:text-accent-cyan transition-colors"
+                title="Collapse all folders"
+              >
+                [-]
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Feeds without folders */}
         {rootFeeds.map((feed) => (
@@ -144,21 +212,41 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
         {feedsByFolder.map(({ folder, feeds: folderFeeds }) => (
           <div key={folder.id} className="mb-2">
             <div
-              className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${
+              className={`flex items-center justify-between px-3 py-2 rounded transition-colors ${
                 selectedFeedId === -folder.id
                   ? 'bg-bg-accent text-accent-cyan font-medium'
                   : 'text-text-secondary hover:bg-bg-accent font-medium'
               }`}
-              onClick={() => onFolderSelect?.(folder.id)}
             >
-              <span>{toSnakeCase(folder.name)}</span>
+              <div className="flex items-center gap-1 flex-1 cursor-pointer" onClick={() => onFolderSelect?.(folder.id)}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleFolder(folder.id)
+                  }}
+                  className="text-text-muted hover:text-accent-cyan transition-all"
+                  aria-label={isFolderExpanded(folder.id) ? 'Collapse folder' : 'Expand folder'}
+                >
+                  <svg
+                    className={`w-3 h-3 transition-transform ${
+                      isFolderExpanded(folder.id) ? 'rotate-90' : ''
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <span>{toSnakeCase(folder.name)}</span>
+              </div>
               {getFolderUnreadCount(folder.id) > 0 && (
-                <span className="text-xs text-text-muted">
+                <span className="text-xs font-semibold bg-accent-purple bg-opacity-20 text-accent-purple px-2 py-0.5 rounded-full">
                   {getFolderUnreadCount(folder.id)}
                 </span>
               )}
             </div>
-            {folderFeeds.map((feed) => (
+            {isFolderExpanded(folder.id) && folderFeeds.map((feed) => (
               <div
                 key={feed.id}
                 className={`flex items-center justify-between px-6 py-1.5 rounded cursor-pointer transition-colors text-sm ${

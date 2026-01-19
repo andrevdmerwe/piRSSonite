@@ -56,9 +56,10 @@ export default function ArticleCard({ entry }: ArticleCardProps) {
     }
   }, [isRead, markRead])
 
-  const handleOpenInBrowser = async () => {
+  const handleTitleClick = async () => {
+    // Mark as read when title is clicked
+    // Browser will handle the link opening natively
     await markRead()
-    window.open(entry.url, '_blank', 'noopener,noreferrer')
   }
 
   const formatDate = (date: Date) => {
@@ -94,12 +95,15 @@ export default function ArticleCard({ entry }: ArticleCardProps) {
       </div>
 
       {/* Title - Click to open in browser */}
-      <h2
-        className="text-lg font-semibold text-text-primary mb-2 cursor-pointer hover:text-accent-cyan transition-colors"
-        onClick={handleOpenInBrowser}
+      <a
+        href={entry.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={handleTitleClick}
+        className="text-lg font-semibold text-text-primary mb-2 block hover:text-accent-cyan transition-colors no-underline"
       >
         {entry.title}
-      </h2>
+      </a>
 
       {/* Content - show preview or full based on expansion */}
       <div
