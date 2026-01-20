@@ -15,6 +15,7 @@ export default function Home() {
   const [isResizing, setIsResizing] = useState(false)
   const startXRef = useRef(0)
   const startWidthRef = useRef(288)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   // Load sidebar width from localStorage
   useEffect(() => {
@@ -105,8 +106,8 @@ export default function Home() {
           style={{ userSelect: 'none' }}
         />
       </div>
-      <div className="flex-1 overflow-y-auto">
-        <EntryFeed feedId={feedId} folderId={folderId} selectedName={selectedName} sidebarWidth={sidebarWidth} />
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
+        <EntryFeed feedId={feedId} folderId={folderId} selectedName={selectedName} sidebarWidth={sidebarWidth} scrollContainerRef={scrollContainerRef} />
       </div>
     </main>
   )

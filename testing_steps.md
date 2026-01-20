@@ -24,7 +24,25 @@ This document contains step-by-step instructions for testing all implemented fea
 
    # If it doesn't exist, run:
    npx prisma migrate dev --name init
-   ```
+   
+
+## Reset 
+
+1. Stop the server (since the database file is locked):
+taskkill /F /IM node.exe
+
+2. Reset the database: Run this command to wipe the database and re-apply the schema:
+npx prisma migrate reset --force
+
+3. Reset browser settings: Some settings (theme, watermark state, sidebar width) are stored in your browser.
+Open your browser's Developer Tools (F12).
+Go to the Console tab.
+Run: localStorage.clear()
+Refresh the page.
+
+4. Restart the server:
+npm run dev
+
 
 ---
 

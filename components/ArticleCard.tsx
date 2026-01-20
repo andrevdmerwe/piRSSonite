@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, RefObject } from 'react'
 import { useEntryState } from '@/lib/hooks/useEntryState'
 import { toSnakeCase } from '@/lib/utils/textUtils'
 
@@ -20,9 +20,10 @@ interface Entry {
 interface ArticleCardProps {
   entry: Entry
   onMarkRead?: (entryId: number) => void
+  scrollContainerRef?: RefObject<HTMLDivElement | null>
 }
 
-export default function ArticleCard({ entry, onMarkRead }: ArticleCardProps) {
+export default function ArticleCard({ entry, onMarkRead, scrollContainerRef }: ArticleCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   const { isRead, isStarred, toggleStar, markRead } = useEntryState(entry.id, {
@@ -30,23 +31,35 @@ export default function ArticleCard({ entry, onMarkRead }: ArticleCardProps) {
     isStarred: entry.isStarred,
   })
 
-  // Scroll detection - mark as read when scrolled past viewport top
+  // Scroll detection - mark as read when scrolled past scroll container top
   useEffect(() => {
     if (isRead || !cardRef.current) return
 
+    const scrollRoot = scrollContainerRef?.current || null
+
+    // Use rootMargin to create a detection zone only at the top
+    // Large negative bottom margin means items exiting the bottom won't trigger
+    // Small negative top margin means items must fully exit the top
     const observer = new IntersectionObserver(
       (observerEntries) => {
         observerEntries.forEach((obsEntry) => {
-          // Check if entry has scrolled past the top of viewport
-          if (obsEntry.boundingClientRect.bottom < 0 && !isRead) {
-            markRead().then(() => onMarkRead?.(entry.id)).catch(console.error)
+          // When not intersecting and the element's top is above the container
+          // (y coordinate is negative relative to scroll container)
+          if (!obsEntry.isIntersecting && !isRead) {
+            // Get the relative position to the scroll container
+            const rootBounds = obsEntry.rootBounds
+            if (rootBounds && obsEntry.boundingClientRect.bottom < rootBounds.top + 50) {
+              // Element has exited near the top of the scroll container
+              markRead().then(() => onMarkRead?.(entry.id)).catch(console.error)
+            }
           }
         })
       },
       {
         threshold: 0,
-        root: null,
-        rootMargin: '0px',
+        root: scrollRoot,
+        // Top margin: 0, Right: 0, Bottom: -95% (ignore bottom exit), Left: 0
+        rootMargin: '0px 0px -95% 0px',
       }
     )
 
@@ -55,7 +68,7 @@ export default function ArticleCard({ entry, onMarkRead }: ArticleCardProps) {
     return () => {
       observer.disconnect()
     }
-  }, [isRead, markRead])
+  }, [isRead, markRead, scrollContainerRef, entry.id, onMarkRead])
 
   const handleTitleClick = async () => {
     // Mark as read when title is clicked

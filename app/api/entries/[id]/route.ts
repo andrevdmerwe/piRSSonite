@@ -37,11 +37,15 @@ export async function PUT(
       )
     }
 
+    console.log(`[API] Updating entry ${entryId} with:`, updateData)
+
     // Update entry in transaction
     const updatedEntry = await prisma.entry.update({
       where: { id: entryId },
       data: updateData,
     })
+
+    console.log(`[API] Entry ${entryId} updated. isRead=${updatedEntry.isRead}`)
 
     return NextResponse.json(updatedEntry)
   } catch (error: any) {

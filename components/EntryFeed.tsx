@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, RefObject } from 'react'
 import ArticleCard from './ArticleCard'
 import { useUnreadCounts } from '@/lib/context/UnreadCountsContext'
 import { useTheme } from '@/lib/context/ThemeContext'
@@ -25,9 +25,10 @@ interface EntryFeedProps {
   folderId?: number
   selectedName?: string
   sidebarWidth?: number
+  scrollContainerRef?: RefObject<HTMLDivElement | null>
 }
 
-export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth = 288 }: EntryFeedProps) {
+export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth = 288, scrollContainerRef }: EntryFeedProps) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -75,12 +76,13 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
           url += `&folderId=${folderId}`
         }
 
-        const response = await fetch(url)
+        const response = await fetch(url, { cache: 'no-store' })
         if (!response.ok) {
           throw new Error('Failed to fetch entries')
         }
 
         const data = await response.json()
+        console.log('[EntryFeed] Fetched', data.length, 'entries', data)
         setEntries(data)
         // Track if there were any unread entries at fetch time
         setHadUnreadOnFetch(data.length > 0 && data.some((e: Entry) => !e.isRead))
@@ -103,7 +105,7 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
     ))
   }, [])
 
-  // Calculate unread count based on selection
+  // Calculate unread count based on selection (from context - for sidebar sync)
   const getUnreadCount = () => {
     if (!counts) return 0
     if (feedId) return counts.byFeed[feedId] || 0
@@ -111,7 +113,11 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
     return counts.total
   }
 
-  const unreadCount = getUnreadCount()
+  // Local unread count from entries array - updates immediately on mark read
+  const localUnreadCount = entries.filter(e => !e.isRead).length
+
+  // Use local count for immediate feedback in header, context count for sidebar
+  const unreadCount = localUnreadCount
   const displayName = toSnakeCase(selectedName || 'all_items')
 
   return (
@@ -178,7 +184,7 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
           <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto relative z-1">
             <div className="space-y-4">
               {entries.map((entry) => (
-                <ArticleCard key={entry.id} entry={entry} onMarkRead={handleMarkRead} />
+                <ArticleCard key={entry.id} entry={entry} onMarkRead={handleMarkRead} scrollContainerRef={scrollContainerRef} />
               ))}
             </div>
             {/* Spacer to allow last articles to scroll past viewport top */}

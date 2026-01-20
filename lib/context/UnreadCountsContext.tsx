@@ -17,7 +17,7 @@ export function UnreadCountsProvider({ children }: { children: React.ReactNode }
 
   const fetchCounts = useCallback(async () => {
     try {
-      const response = await fetch('/api/counts')
+      const response = await fetch('/api/counts', { cache: 'no-store' })
       if (response.ok) {
         const data = await response.json()
         setCounts(data)
