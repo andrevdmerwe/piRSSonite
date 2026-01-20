@@ -2,31 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap');
+
 :root {
-  --bg-main: #1e1e2e;
-  --bg-panel: #232335;
-  --bg-card: #2a2a40;
-  --bg-accent: #313155;
+  /* Base backgrounds - dark code editor style */
+  --bg-main: #05070A;
+  --bg-panel: #0B0F16;
+  --bg-card: #111623;
+  --bg-accent: #1a2233;
+  --bg-card-hover: #182030;
 
-  --text-primary: #e6e6f0;
-  --text-secondary: #a7a7c2;
-  --text-muted: #7a7aa3;
+  /* Text colors */
+  --text-primary: #E5E9F0;
+  --text-secondary: #7A8395;
+  --text-muted: #5A6578;
 
-  --accent-cyan: #3fd0d4;
-  --accent-purple: #b38df6;
-  --accent-border: #8a6fd1;
+  /* Accent colors */
+  --accent-blue: #3B82F6;
+  --accent-green: #10B981;
+  --accent-cyan: #3B82F6;
+  --accent-purple: #3B82F6;
+  --accent-border: #2a3545;
 
-  --badge-bg: #3a3a5a;
-  --border-soft: rgba(255,255,255,0.06);
+  /* UI elements */
+  --badge-bg: #1e2a3d;
+  --border-soft: rgba(255,255,255,0.04);
+
+  /* Scrollbar */
+  --scrollbar-thumb: #2a3545;
+  --scrollbar-track: transparent;
 }
 
 body {
   margin: 0;
   background: var(--bg-main);
   color: var(--text-primary);
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Fira Code", "JetBrains Mono", "Source Code Pro", Menlo, monospace;
   font-size: 14px;
-  line-height: 1.45;
+  line-height: 1.5;
   overflow: hidden;
 }
 
@@ -36,10 +49,32 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3a3a55;
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
+}
+
+/* Ensure monospace throughout */
+* {
+  font-family: inherit;
+}
+
+/* Utility classes for new colors */
+.text-accent-blue {
+  color: var(--accent-blue);
+}
+
+.text-accent-green {
+  color: var(--accent-green);
+}
+
+.bg-accent-blue {
+  background-color: var(--accent-blue);
+}
+
+.bg-accent-green {
+  background-color: var(--accent-green);
 }
