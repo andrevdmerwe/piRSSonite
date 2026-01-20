@@ -185,14 +185,14 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
         </h4>
         <div
           className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${selectedFeedId === 0 || selectedFeedId === undefined
-              ? 'bg-bg-accent text-accent-cyan'
-              : 'text-text-secondary hover:bg-bg-accent'
+            ? 'bg-bg-accent text-accent-cyan'
+            : 'text-text-secondary hover:bg-bg-accent'
             }`}
           onClick={() => onFeedSelect?.(0, 'all_items')}
         >
           <span>all_items</span>
           {counts && counts.total > 0 && (
-            <span className="text-xs font-semibold bg-accent-purple bg-opacity-20 text-accent-purple px-2 py-0.5 rounded-full">
+            <span className="text-xs font-semibold bg-accent-purple bg-opacity-20 text-badge-text px-2 py-0.5 rounded-full">
               {counts.total}
             </span>
           )}
@@ -230,8 +230,8 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
           <div
             key={feed.id}
             className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${selectedFeedId === feed.id
-                ? 'bg-bg-accent text-accent-cyan'
-                : 'text-text-secondary hover:bg-bg-accent'
+              ? 'bg-bg-accent text-accent-cyan'
+              : 'text-text-secondary hover:bg-bg-accent'
               }`}
             onClick={() => onFeedSelect?.(feed.id, feed.title)}
           >
@@ -249,8 +249,8 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
           <div key={folder.id} className="mb-2">
             <div
               className={`flex items-center justify-between px-3 py-2 rounded transition-colors ${selectedFeedId === -folder.id
-                  ? 'bg-bg-accent text-accent-cyan font-medium'
-                  : 'text-text-secondary hover:bg-bg-accent font-medium'
+                ? 'bg-bg-accent text-accent-cyan font-medium'
+                : 'text-text-secondary hover:bg-bg-accent font-medium'
                 }`}
             >
               <div className="flex items-center gap-1 flex-1 cursor-pointer" onClick={() => onFolderSelect?.(folder.id, folder.name)}>
@@ -275,7 +275,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
                 <span>{toSnakeCase(folder.name)}</span>
               </div>
               {getFolderUnreadCount(folder.id) > 0 && (
-                <span className="text-xs font-semibold bg-accent-purple bg-opacity-20 text-accent-purple px-2 py-0.5 rounded-full">
+                <span className="text-xs font-semibold bg-accent-purple bg-opacity-20 text-badge-text px-2 py-0.5 rounded-full">
                   {getFolderUnreadCount(folder.id)}
                 </span>
               )}
@@ -284,8 +284,8 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
               <div
                 key={feed.id}
                 className={`flex items-center justify-between px-6 py-1.5 rounded cursor-pointer transition-colors text-sm ${selectedFeedId === feed.id
-                    ? 'bg-bg-accent text-accent-cyan'
-                    : 'text-text-secondary hover:bg-bg-accent'
+                  ? 'bg-bg-accent text-accent-cyan'
+                  : 'text-text-secondary hover:bg-bg-accent'
                   }`}
                 onClick={() => onFeedSelect?.(feed.id, feed.title)}
               >

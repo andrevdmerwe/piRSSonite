@@ -87,7 +87,7 @@ export default function ArticleCard({ entry, onMarkRead }: ArticleCardProps) {
       {/* Header */}
       <div className="flex items-center gap-2 text-xs text-text-muted mb-2">
         {!isRead && (
-          <span className="bg-badge-bg text-accent-purple px-2 py-1 rounded-full font-semibold">
+          <span className="bg-badge-bg text-badge-text px-2 py-1 rounded-full font-semibold">
             unread
           </span>
         )}

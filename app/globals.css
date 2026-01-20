@@ -3,42 +3,50 @@
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* Theme CSS Variables - These are set dynamically by ThemeContext */
 :root {
-  /* Base backgrounds - dark code editor style */
-  --bg-main: #05070A;
-  --bg-panel: #0B0F16;
-  --bg-card: #111623;
-  --bg-accent: #1a2233;
-  --bg-card-hover: #182030;
+  /* Default fallback values (Tokyo Night) - will be overwritten by ThemeContext */
+  --color-background-app: #1a1b26;
+  --color-background-sidebar: #16161e;
+  --color-background-panel: #1f2335;
+  --color-background-card: #24283b;
+  --color-background-cardHover: #292e42;
+  --color-border-default: #3b4261;
+  --color-border-focus: #7aa2f7;
+  --color-text-primary: #c0caf5;
+  --color-text-secondary: #a9b1d6;
+  --color-text-muted: #565f89;
+  --color-accent-primary: #7aa2f7;
+  --color-accent-secondary: #bb9af7;
+  --color-accent-success: #9ece6a;
+  --color-accent-warning: #e0af68;
+  --color-accent-danger: #f7768e;
+  --color-badge-unread: #bb9af7;
+  --color-badge-read: #9ece6a;
+  --color-badge-text: #1a1b26;
+  --color-scrollbar-thumb: #3b4261;
+  --color-scrollbar-track: transparent;
 
-  /* Text colors */
-  --text-primary: #E5E9F0;
-  --text-secondary: #7A8395;
-  --text-muted: #5A6578;
+  /* Font variables */
+  --font-ui: "Fira Code", "JetBrains Mono", "Source Code Pro", Menlo, monospace;
+  --font-content: "Fira Code", "JetBrains Mono", "Source Code Pro", Menlo, monospace;
+  --font-monospace: "Fira Code", "JetBrains Mono", "Source Code Pro", Menlo, monospace;
 
-  /* Accent colors */
-  --accent-blue: #3B82F6;
-  --accent-green: #10B981;
-  --accent-cyan: #3B82F6;
-  --accent-purple: #3B82F6;
-  --accent-border: #2a3545;
-
-  /* UI elements */
-  --badge-bg: #1e2a3d;
-  --border-soft: rgba(255,255,255,0.04);
-
-  /* Scrollbar */
-  --scrollbar-thumb: #2a3545;
-  --scrollbar-track: transparent;
+  /* Font size variables */
+  --font-size-base: 14px;
+  --font-size-small: 12px;
+  --font-size-large: 16px;
 }
 
 body {
   margin: 0;
-  background: var(--bg-main);
-  color: var(--text-primary);
-  font-family: "Fira Code", "JetBrains Mono", "Source Code Pro", Menlo, monospace;
-  font-size: 14px;
+  background: var(--color-background-app);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
   line-height: 1.5;
   overflow: hidden;
 }
@@ -49,32 +57,15 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: var(--color-scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+  background: var(--color-scrollbar-track);
 }
 
 /* Ensure monospace throughout */
 * {
   font-family: inherit;
-}
-
-/* Utility classes for new colors */
-.text-accent-blue {
-  color: var(--accent-blue);
-}
-
-.text-accent-green {
-  color: var(--accent-green);
-}
-
-.bg-accent-blue {
-  background-color: var(--accent-blue);
-}
-
-.bg-accent-green {
-  background-color: var(--accent-green);
 }

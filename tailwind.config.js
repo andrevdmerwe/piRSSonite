@@ -8,31 +8,34 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Base backgrounds - dark code editor style
-        'bg-main': '#05070A',
-        'bg-panel': '#0B0F16',
-        'bg-card': '#111623',
-        'bg-accent': '#1a2233',
-        'bg-card-hover': '#182030',
+        // Backgrounds - using CSS variables for theme support
+        'bg-main': 'var(--color-background-app)',
+        'bg-panel': 'var(--color-background-sidebar)',
+        'bg-card': 'var(--color-background-card)',
+        'bg-accent': 'var(--color-background-panel)',
+        'bg-card-hover': 'var(--color-background-cardHover)',
 
         // Text colors
-        'text-primary': '#E5E9F0',
-        'text-secondary': '#7A8395',
-        'text-muted': '#5A6578',
+        'text-primary': 'var(--color-text-primary)',
+        'text-secondary': 'var(--color-text-secondary)',
+        'text-muted': 'var(--color-text-muted)',
 
         // Accent colors
-        'accent-blue': '#3B82F6',
-        'accent-green': '#10B981',
-        'accent-cyan': '#3B82F6',
-        'accent-purple': '#3B82F6',
-        'accent-border': '#2a3545',
+        'accent-cyan': 'var(--color-accent-primary)',
+        'accent-purple': 'var(--color-accent-secondary)',
+        'accent-blue': 'var(--color-accent-primary)',
+        'accent-green': 'var(--color-accent-success)',
+        'accent-border': 'var(--color-border-default)',
 
         // UI elements
-        'badge-bg': '#1e2a3d',
-        'border-soft': 'rgba(255,255,255,0.04)',
+        'badge-bg': 'var(--color-background-panel)',
+        'badge-text': 'var(--color-badge-text)',
+        'border-soft': 'var(--color-border-default)',
       },
       fontFamily: {
-        mono: ['"Fira Code"', '"JetBrains Mono"', '"Source Code Pro"', 'Menlo', 'monospace'],
+        mono: ['var(--font-monospace)'],
+        ui: ['var(--font-ui)'],
+        content: ['var(--font-content)'],
       },
     },
   },

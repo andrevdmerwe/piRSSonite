@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import AutoRefresher from '@/components/AutoRefresher'
 import { UnreadCountsProvider } from '@/lib/context/UnreadCountsContext'
+import { ThemeProvider } from '@/lib/context/ThemeContext'
 
 export const metadata: Metadata = {
   title: 'piRSSonite',
@@ -16,10 +17,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <UnreadCountsProvider>
-          <AutoRefresher />
-          {children}
-        </UnreadCountsProvider>
+        <ThemeProvider>
+          <UnreadCountsProvider>
+            <AutoRefresher />
+            {children}
+          </UnreadCountsProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

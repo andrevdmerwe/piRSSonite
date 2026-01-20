@@ -155,7 +155,7 @@ export default function EntryFeed({ feedId, folderId, selectedName }: EntryFeedP
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-accent-cyan">{displayName}</h2>
               {unreadCount > 0 && (
-                <span className="text-sm font-semibold bg-accent-purple bg-opacity-20 text-accent-purple px-3 py-1 rounded-full">
+                <span className="text-sm font-semibold bg-accent-purple bg-opacity-20 text-badge-text px-3 py-1 rounded-full">
                   {unreadCount} unread
                 </span>
               )}
