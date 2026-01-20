@@ -18,8 +18,8 @@ interface Folder {
 }
 
 interface SidebarProps {
-  onFeedSelect?: (feedId: number) => void
-  onFolderSelect?: (folderId: number) => void
+  onFeedSelect?: (feedId: number, feedTitle?: string) => void
+  onFolderSelect?: (folderId: number, folderName?: string) => void
   selectedFeedId?: number
 }
 
@@ -184,12 +184,11 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
           views
         </h4>
         <div
-          className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${
-            selectedFeedId === 0 || selectedFeedId === undefined
+          className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${selectedFeedId === 0 || selectedFeedId === undefined
               ? 'bg-bg-accent text-accent-cyan'
               : 'text-text-secondary hover:bg-bg-accent'
-          }`}
-          onClick={() => onFeedSelect?.(0)}
+            }`}
+          onClick={() => onFeedSelect?.(0, 'all_items')}
         >
           <span>all_items</span>
           {counts && counts.total > 0 && (
@@ -230,12 +229,11 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
         {rootFeeds.map((feed) => (
           <div
             key={feed.id}
-            className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${
-              selectedFeedId === feed.id
+            className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${selectedFeedId === feed.id
                 ? 'bg-bg-accent text-accent-cyan'
                 : 'text-text-secondary hover:bg-bg-accent'
-            }`}
-            onClick={() => onFeedSelect?.(feed.id)}
+              }`}
+            onClick={() => onFeedSelect?.(feed.id, feed.title)}
           >
             <span className="truncate">{toSnakeCase(feed.title)}</span>
             {getUnreadCount(feed.id) > 0 && (
@@ -250,13 +248,12 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
         {feedsByFolder.map(({ folder, feeds: folderFeeds }) => (
           <div key={folder.id} className="mb-2">
             <div
-              className={`flex items-center justify-between px-3 py-2 rounded transition-colors ${
-                selectedFeedId === -folder.id
+              className={`flex items-center justify-between px-3 py-2 rounded transition-colors ${selectedFeedId === -folder.id
                   ? 'bg-bg-accent text-accent-cyan font-medium'
                   : 'text-text-secondary hover:bg-bg-accent font-medium'
-              }`}
+                }`}
             >
-              <div className="flex items-center gap-1 flex-1 cursor-pointer" onClick={() => onFolderSelect?.(folder.id)}>
+              <div className="flex items-center gap-1 flex-1 cursor-pointer" onClick={() => onFolderSelect?.(folder.id, folder.name)}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
@@ -266,9 +263,8 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
                   aria-label={isFolderExpanded(folder.id) ? 'Collapse folder' : 'Expand folder'}
                 >
                   <svg
-                    className={`w-3 h-3 transition-transform ${
-                      isFolderExpanded(folder.id) ? 'rotate-90' : ''
-                    }`}
+                    className={`w-3 h-3 transition-transform ${isFolderExpanded(folder.id) ? 'rotate-90' : ''
+                      }`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -287,12 +283,11 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
             {isFolderExpanded(folder.id) && folderFeeds.map((feed) => (
               <div
                 key={feed.id}
-                className={`flex items-center justify-between px-6 py-1.5 rounded cursor-pointer transition-colors text-sm ${
-                  selectedFeedId === feed.id
+                className={`flex items-center justify-between px-6 py-1.5 rounded cursor-pointer transition-colors text-sm ${selectedFeedId === feed.id
                     ? 'bg-bg-accent text-accent-cyan'
                     : 'text-text-secondary hover:bg-bg-accent'
-                }`}
-                onClick={() => onFeedSelect?.(feed.id)}
+                  }`}
+                onClick={() => onFeedSelect?.(feed.id, feed.title)}
               >
                 <span className="truncate">{toSnakeCase(feed.title)}</span>
                 {getUnreadCount(feed.id) > 0 && (

@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import ArticleCard from './ArticleCard'
+import { useUnreadCounts } from '@/lib/context/UnreadCountsContext'
+import { toSnakeCase } from '@/lib/utils/textUtils'
 
 interface Entry {
   id: number
@@ -20,13 +22,16 @@ interface Entry {
 interface EntryFeedProps {
   feedId?: number
   folderId?: number
+  selectedName?: string
 }
 
-export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
+export default function EntryFeed({ feedId, folderId, selectedName }: EntryFeedProps) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cardWidth, setCardWidth] = useState(700)
+  const [hadUnreadOnFetch, setHadUnreadOnFetch] = useState(true) // Track if there were unread entries when fetched
+  const { counts } = useUnreadCounts()
 
   // Load article width from localStorage
   useEffect(() => {
@@ -60,7 +65,7 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
       setError(null)
 
       try {
-        let url = '/api/entries?limit=50'
+        let url = '/api/entries?limit=1000'
         if (feedId) {
           url += `&feedId=${feedId}`
         } else if (folderId) {
@@ -74,6 +79,8 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
 
         const data = await response.json()
         setEntries(data)
+        // Track if there were any unread entries at fetch time
+        setHadUnreadOnFetch(data.length > 0 && data.some((e: Entry) => !e.isRead))
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
         console.error('Failed to fetch entries:', err)
@@ -84,6 +91,14 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
 
     fetchEntries()
   }, [feedId, folderId])
+
+  // Callback when an entry is marked as read - update local state
+  // Must be before conditional returns to maintain hook order
+  const handleMarkRead = useCallback((entryId: number) => {
+    setEntries(prev => prev.map(e =>
+      e.id === entryId ? { ...e, isRead: true } : e
+    ))
+  }, [])
 
   if (loading) {
     return (
@@ -101,8 +116,6 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
     )
   }
 
-  const unreadEntries = entries.filter(e => !e.isRead)
-
   if (entries.length === 0) {
     return (
       <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64">
@@ -111,7 +124,9 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
     )
   }
 
-  if (unreadEntries.length === 0) {
+  // Only show "no_unread_feeds" if there were no unread entries when fetched
+  // (not after scrolling through them all - that case shows the entries still)
+  if (!hadUnreadOnFetch) {
     return (
       <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64">
         <div className="text-text-muted">no_unread_feeds</div>
@@ -119,13 +134,46 @@ export default function EntryFeed({ feedId, folderId }: EntryFeedProps) {
     )
   }
 
+  // Calculate unread count based on selection
+  const getUnreadCount = () => {
+    if (!counts) return 0
+    if (feedId) return counts.byFeed[feedId] || 0
+    if (folderId) return counts.byFolder[folderId] || 0
+    return counts.total
+  }
+
+  const unreadCount = getUnreadCount()
+  const displayName = toSnakeCase(selectedName || 'all_items')
+
   return (
-    <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto space-y-4">
-      {unreadEntries.map((entry) => (
-        <ArticleCard key={entry.id} entry={entry} />
-      ))}
-      {/* Spacer to allow last articles to scroll past viewport top */}
-      <div className="h-screen" aria-hidden="true"></div>
-    </div>
+    <>
+      {/* Sticky Header Wrapper - Transparent bg extends to top for clean scroll */}
+      <div className="sticky top-0 z-10 pt-6 pb-4 bg-bg-main">
+        {/* Styled Header - Matches card width */}
+        <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto bg-bg-panel border-b-2 border-accent-cyan/30 shadow-lg rounded-lg px-6">
+          <div className="py-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-accent-cyan">{displayName}</h2>
+              {unreadCount > 0 && (
+                <span className="text-sm font-semibold bg-accent-purple bg-opacity-20 text-accent-purple px-3 py-1 rounded-full">
+                  {unreadCount} unread
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Articles Container */}
+      <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto">
+        <div className="space-y-4">
+          {entries.map((entry) => (
+            <ArticleCard key={entry.id} entry={entry} onMarkRead={handleMarkRead} />
+          ))}
+        </div>
+        {/* Spacer to allow last articles to scroll past viewport top */}
+        <div className="h-screen" aria-hidden="true"></div>
+      </div>
+    </>
   )
 }

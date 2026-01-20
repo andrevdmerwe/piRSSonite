@@ -19,9 +19,10 @@ interface Entry {
 
 interface ArticleCardProps {
   entry: Entry
+  onMarkRead?: (entryId: number) => void
 }
 
-export default function ArticleCard({ entry }: ArticleCardProps) {
+export default function ArticleCard({ entry, onMarkRead }: ArticleCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   const { isRead, isStarred, toggleStar, markRead } = useEntryState(entry.id, {
@@ -34,11 +35,11 @@ export default function ArticleCard({ entry }: ArticleCardProps) {
     if (isRead || !cardRef.current) return
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
+      (observerEntries) => {
+        observerEntries.forEach((obsEntry) => {
           // Check if entry has scrolled past the top of viewport
-          if (entry.boundingClientRect.bottom < 0 && !isRead) {
-            markRead().catch(console.error)
+          if (obsEntry.boundingClientRect.bottom < 0 && !isRead) {
+            markRead().then(() => onMarkRead?.(entry.id)).catch(console.error)
           }
         })
       },
@@ -60,6 +61,7 @@ export default function ArticleCard({ entry }: ArticleCardProps) {
     // Mark as read when title is clicked
     // Browser will handle the link opening natively
     await markRead()
+    onMarkRead?.(entry.id)
   }
 
   const formatDate = (date: Date) => {
@@ -107,9 +109,8 @@ export default function ArticleCard({ entry }: ArticleCardProps) {
 
       {/* Content - show preview or full based on expansion */}
       <div
-        className={`text-sm text-text-secondary mb-3 ${
-          isExpanded ? '' : 'line-clamp-3'
-        }`}
+        className={`text-sm text-text-secondary mb-3 ${isExpanded ? '' : 'line-clamp-3'
+          }`}
         dangerouslySetInnerHTML={{ __html: entry.content }}
       />
 
@@ -140,7 +141,7 @@ export default function ArticleCard({ entry }: ArticleCardProps) {
 
           {!isRead && (
             <button
-              onClick={markRead}
+              onClick={async () => { await markRead(); onMarkRead?.(entry.id) }}
               className="px-3 py-1 rounded text-xs text-text-secondary hover:bg-bg-accent transition-colors"
             >
               mark_as_read

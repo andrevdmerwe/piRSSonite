@@ -10,6 +10,7 @@ export default function Home() {
   // - positive: specific feed
   // - negative: folder (absolute value is folderId)
   const [selectedFeedId, setSelectedFeedId] = useState<number | undefined>(undefined)
+  const [selectedName, setSelectedName] = useState<string>('all_items')
   const [sidebarWidth, setSidebarWidth] = useState(288)
   const [isResizing, setIsResizing] = useState(false)
   const startXRef = useRef(0)
@@ -86,21 +87,26 @@ export default function Home() {
     <main className="flex h-screen overflow-hidden">
       <div className="relative" style={{ width: `${sidebarWidth}px` }}>
         <Sidebar
-          onFeedSelect={(feedId) => setSelectedFeedId(feedId === 0 ? undefined : feedId)}
-          onFolderSelect={(folderId) => setSelectedFeedId(-folderId)}
+          onFeedSelect={(feedId, feedTitle) => {
+            setSelectedFeedId(feedId === 0 ? undefined : feedId)
+            setSelectedName(feedTitle || 'all_items')
+          }}
+          onFolderSelect={(folderId, folderName) => {
+            setSelectedFeedId(-folderId)
+            setSelectedName(folderName || 'folder')
+          }}
           selectedFeedId={selectedFeedId}
         />
         {/* Resize Handle */}
         <div
           onMouseDown={handleResizeStart}
-          className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-accent-border transition-colors ${
-            isResizing ? 'bg-accent-cyan' : ''
-          }`}
+          className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-accent-border transition-colors ${isResizing ? 'bg-accent-cyan' : ''
+            }`}
           style={{ userSelect: 'none' }}
         />
       </div>
-      <div className="flex-1 overflow-y-auto p-6">
-        <EntryFeed feedId={feedId} folderId={folderId} />
+      <div className="flex-1 overflow-y-auto">
+        <EntryFeed feedId={feedId} folderId={folderId} selectedName={selectedName} />
       </div>
     </main>
   )
