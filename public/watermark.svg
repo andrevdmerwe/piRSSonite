@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Large watermark version of the crystal - uses CSS variable for color -->
+  <path d="M100 10 L170 45 L170 125 L100 190 L30 125 L30 45 Z" stroke="currentColor" stroke-width="3" fill="none" opacity="0.1"/>
+  <!-- Inner facets -->
+  <path d="M100 10 L100 190" stroke="currentColor" stroke-width="2" opacity="0.08" fill="none"/>
+  <path d="M30 45 L170 125" stroke="currentColor" stroke-width="2" opacity="0.08" fill="none"/>
+  <path d="M170 45 L30 125" stroke="currentColor" stroke-width="2" opacity="0.08" fill="none"/>
+  <!-- Top facet -->
+  <path d="M65 27 L100 10 L135 27 L100 60 Z" stroke="currentColor" stroke-width="2" opacity="0.06" fill="none"/>
+  <!-- Bottom facet -->
+  <path d="M65 163 L100 190 L135 163 L100 140 Z" stroke="currentColor" stroke-width="2" opacity="0.06" fill="none"/>
+</svg>

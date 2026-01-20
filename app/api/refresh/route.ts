@@ -88,10 +88,11 @@ export async function POST() {
               }
 
               // Update feed metadata - success
+              // Only update title if customTitle is false (user hasn't edited it)
               await tx.feed.update({
                 where: { id: feed.id },
                 data: {
-                  title: parsedFeed.title,
+                  ...(feed.customTitle ? {} : { title: parsedFeed.title }),
                   lastFetched: new Date(),
                   nextCheckAt: calculateNextCheckTime(0), // Reset failure count
                   failureCount: 0,

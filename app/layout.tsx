@@ -7,6 +7,9 @@ import { ThemeProvider } from '@/lib/context/ThemeContext'
 export const metadata: Metadata = {
   title: 'piRSSonite',
   description: 'self_hosted_rss_reader',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({

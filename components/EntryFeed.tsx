@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import ArticleCard from './ArticleCard'
 import { useUnreadCounts } from '@/lib/context/UnreadCountsContext'
+import { useTheme } from '@/lib/context/ThemeContext'
 import { toSnakeCase } from '@/lib/utils/textUtils'
 
 interface Entry {
@@ -23,15 +24,17 @@ interface EntryFeedProps {
   feedId?: number
   folderId?: number
   selectedName?: string
+  sidebarWidth?: number
 }
 
-export default function EntryFeed({ feedId, folderId, selectedName }: EntryFeedProps) {
+export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth = 288 }: EntryFeedProps) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cardWidth, setCardWidth] = useState(700)
   const [hadUnreadOnFetch, setHadUnreadOnFetch] = useState(true) // Track if there were unread entries when fetched
   const { counts } = useUnreadCounts()
+  const { watermarkEnabled, watermarkColor } = useTheme()
 
   // Load article width from localStorage
   useEffect(() => {
@@ -100,40 +103,6 @@ export default function EntryFeed({ feedId, folderId, selectedName }: EntryFeedP
     ))
   }, [])
 
-  if (loading) {
-    return (
-      <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64">
-        <div className="text-text-secondary">loading_entries...</div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64">
-        <div className="text-red-400">Error: {error}</div>
-      </div>
-    )
-  }
-
-  if (entries.length === 0) {
-    return (
-      <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64">
-        <div className="text-text-muted">no_entries_found</div>
-      </div>
-    )
-  }
-
-  // Only show "no_unread_feeds" if there were no unread entries when fetched
-  // (not after scrolling through them all - that case shows the entries still)
-  if (!hadUnreadOnFetch) {
-    return (
-      <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64">
-        <div className="text-text-muted">no_unread_feeds</div>
-      </div>
-    )
-  }
-
   // Calculate unread count based on selection
   const getUnreadCount = () => {
     if (!counts) return 0
@@ -147,33 +116,76 @@ export default function EntryFeed({ feedId, folderId, selectedName }: EntryFeedP
 
   return (
     <>
-      {/* Sticky Header Wrapper - Transparent bg extends to top for clean scroll */}
-      <div className="sticky top-0 z-10 pt-6 pb-4 bg-bg-main">
-        {/* Styled Header - Matches card width */}
-        <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto bg-bg-panel border-b-2 border-accent-cyan/30 shadow-lg rounded-lg px-6">
-          <div className="py-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-accent-cyan">{displayName}</h2>
-              {unreadCount > 0 && (
-                <span className="text-sm font-semibold bg-accent-purple bg-opacity-20 text-badge-text px-3 py-1 rounded-full">
-                  {unreadCount} unread
-                </span>
-              )}
+      {/* Watermark Background */}
+      {watermarkEnabled && (
+        <div
+          className="fixed top-0 bottom-0 right-0 pointer-events-none flex flex-col items-center justify-start z-0 pt-32 overflow-hidden"
+          style={{ opacity: 0.08, left: sidebarWidth }}
+        >
+          <svg
+            width={cardWidth * 1.75}
+            height={cardWidth * 1.75}
+            viewBox="0 0 200 200"
+            fill="none"
+            style={{ minWidth: cardWidth * 1.75, minHeight: cardWidth * 1.75 }}
+          >
+            <path d="M100 10 L170 45 L170 125 L100 190 L30 125 L30 45 Z" stroke={watermarkColor} strokeWidth="3" fill="none" />
+            <path d="M100 10 L100 190" stroke={watermarkColor} strokeWidth="2" opacity="0.8" fill="none" />
+            <path d="M30 45 L170 125" stroke={watermarkColor} strokeWidth="2" opacity="0.8" fill="none" />
+            <path d="M170 45 L30 125" stroke={watermarkColor} strokeWidth="2" opacity="0.8" fill="none" />
+            <path d="M65 27 L100 10 L135 27 L100 60 Z" stroke={watermarkColor} strokeWidth="2" opacity="0.6" fill="none" />
+            <path d="M65 163 L100 190 L135 163 L100 140 Z" stroke={watermarkColor} strokeWidth="2" opacity="0.6" fill="none" />
+          </svg>
+        </div>
+      )}
+
+      {loading ? (
+        <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64 relative z-1">
+          <div className="text-text-secondary">loading_entries...</div>
+        </div>
+      ) : error ? (
+        <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64 relative z-1">
+          <div className="text-red-400">Error: {error}</div>
+        </div>
+      ) : entries.length === 0 ? (
+        <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64 relative z-1">
+          <div className="text-text-muted">no_entries_found</div>
+        </div>
+      ) : !hadUnreadOnFetch ? (
+        <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64 relative z-1">
+          <div className="text-text-muted">no_unread_feeds</div>
+        </div>
+      ) : (
+        <>
+          {/* Sticky Header Wrapper - Transparent bg extends to top for clean scroll */}
+          <div className="sticky top-0 z-10 pt-6 pb-4 bg-bg-main">
+            {/* Styled Header - Matches card width */}
+            <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto bg-bg-panel border-b-2 border-accent-cyan/30 shadow-lg rounded-lg px-6">
+              <div className="py-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-accent-cyan">{displayName}</h2>
+                  {unreadCount > 0 && (
+                    <span className="text-sm font-semibold bg-accent-purple bg-opacity-20 text-badge-text px-3 py-1 rounded-full">
+                      {unreadCount} unread
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Articles Container */}
-      <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto">
-        <div className="space-y-4">
-          {entries.map((entry) => (
-            <ArticleCard key={entry.id} entry={entry} onMarkRead={handleMarkRead} />
-          ))}
-        </div>
-        {/* Spacer to allow last articles to scroll past viewport top */}
-        <div className="h-screen" aria-hidden="true"></div>
-      </div>
+          {/* Articles Container */}
+          <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto relative z-1">
+            <div className="space-y-4">
+              {entries.map((entry) => (
+                <ArticleCard key={entry.id} entry={entry} onMarkRead={handleMarkRead} />
+              ))}
+            </div>
+            {/* Spacer to allow last articles to scroll past viewport top */}
+            <div className="h-screen" aria-hidden="true"></div>
+          </div>
+        </>
+      )}
     </>
   )
 }

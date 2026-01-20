@@ -11,6 +11,9 @@ interface ThemeContextType {
     themeId: string
     // User overrides
     overrides: ThemeOverrides
+    // Watermark settings
+    watermarkEnabled: boolean
+    watermarkColor: string
     // Switch to a different theme
     setTheme: (id: string) => void
     // Update a color override
@@ -23,11 +26,15 @@ interface ThemeContextType {
     resetOverrides: () => void
     // Get list of all available themes
     availableThemes: { id: string; name: string; type: string }[]
+    // Watermark controls
+    setWatermarkEnabled: (enabled: boolean) => void
+    setWatermarkColor: (color: string) => void
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 const STORAGE_KEY = 'pirssonite_theme_state'
+const WATERMARK_STORAGE_KEY = 'pirssonite_watermark'
 
 // Load theme state from localStorage
 function loadThemeState(): ThemeState {
@@ -97,6 +104,23 @@ function mergeThemeWithOverrides(baseTheme: Theme, overrides: ThemeOverrides): T
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [themeState, setThemeState] = useState<ThemeState>(() => loadThemeState())
+    const [watermarkEnabled, setWatermarkEnabledState] = useState(false)
+    const [watermarkColor, setWatermarkColorState] = useState('#7aa2f7')
+
+    // Load watermark settings on mount
+    useEffect(() => {
+        if (typeof window === 'undefined') return
+        try {
+            const saved = localStorage.getItem(WATERMARK_STORAGE_KEY)
+            if (saved) {
+                const parsed = JSON.parse(saved)
+                setWatermarkEnabledState(parsed.enabled ?? false)
+                setWatermarkColorState(parsed.color ?? '#7aa2f7')
+            }
+        } catch (error) {
+            console.error('Failed to load watermark settings:', error)
+        }
+    }, [])
 
     // Compute the effective theme (base + overrides)
     const theme = useMemo(() => {
@@ -169,16 +193,38 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         }))
     }, [])
 
+    const setWatermarkEnabled = useCallback((enabled: boolean) => {
+        setWatermarkEnabledState(enabled)
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(WATERMARK_STORAGE_KEY)
+            const current = saved ? JSON.parse(saved) : {}
+            localStorage.setItem(WATERMARK_STORAGE_KEY, JSON.stringify({ ...current, enabled }))
+        }
+    }, [])
+
+    const setWatermarkColor = useCallback((color: string) => {
+        setWatermarkColorState(color)
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(WATERMARK_STORAGE_KEY)
+            const current = saved ? JSON.parse(saved) : {}
+            localStorage.setItem(WATERMARK_STORAGE_KEY, JSON.stringify({ ...current, color }))
+        }
+    }, [])
+
     const value: ThemeContextType = {
         theme,
         themeId: themeState.activeThemeId,
         overrides: themeState.overrides,
+        watermarkEnabled,
+        watermarkColor,
         setTheme,
         updateColorOverride,
         updateFontOverride,
         updateFontSizeOverride,
         resetOverrides,
         availableThemes,
+        setWatermarkEnabled,
+        setWatermarkColor,
     }
 
     return (

@@ -106,7 +106,7 @@ export default function Home() {
         />
       </div>
       <div className="flex-1 overflow-y-auto">
-        <EntryFeed feedId={feedId} folderId={folderId} selectedName={selectedName} />
+        <EntryFeed feedId={feedId} folderId={folderId} selectedName={selectedName} sidebarWidth={sidebarWidth} />
       </div>
     </main>
   )

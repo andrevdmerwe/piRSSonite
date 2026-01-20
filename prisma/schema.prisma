@@ -28,6 +28,7 @@ model Feed {
   failureCount       Int                  @default(0)
   isAvailable        Boolean              @default(true)
   order              Int                  @default(0)
+  customTitle        Boolean              @default(false)  // When true, don't overwrite title on refresh
   websubHub          String?
   websubTopic        String?
   entries            Entry[]

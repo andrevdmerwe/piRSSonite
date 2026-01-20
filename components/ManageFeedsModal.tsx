@@ -49,6 +49,11 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
     errors: string[]
   } | null>(null)
 
+  // Edit Feed state
+  const [editingFeedId, setEditingFeedId] = useState<number | null>(null)
+  const [editingFeedTitle, setEditingFeedTitle] = useState('')
+  const [editingFeedUrl, setEditingFeedUrl] = useState('')
+
   // Fetch feeds and folders when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -261,6 +266,55 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
         ? folders.find(f => f.id === newFolderId)?.name || 'folder'
         : 'root'
       showSuccess(`moved: ${toSnakeCase(feedTitle)} to ${toSnakeCase(folderName)}`)
+      await fetchData()
+      onRefresh()
+    } catch (err) {
+      showError('network_error_please_try_again')
+    }
+  }
+
+  const handleEditFeed = async (feedId: number) => {
+    if (!editingFeedTitle.trim()) {
+      showError('feed_title_cannot_be_empty')
+      return
+    }
+
+    try {
+      const updateData: { title?: string; url?: string } = {}
+
+      const originalFeed = feeds.find(f => f.id === feedId)
+      if (editingFeedTitle.trim() !== originalFeed?.title) {
+        updateData.title = editingFeedTitle.trim()
+      }
+      if (editingFeedUrl.trim() !== originalFeed?.url) {
+        updateData.url = editingFeedUrl.trim()
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        // No changes
+        setEditingFeedId(null)
+        setEditingFeedTitle('')
+        setEditingFeedUrl('')
+        return
+      }
+
+      const response = await fetch(`/api/feeds/${feedId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        showError(data.error || 'Failed to update feed')
+        return
+      }
+
+      showSuccess(`updated_feed: ${toSnakeCase(data.title)}`)
+      setEditingFeedId(null)
+      setEditingFeedTitle('')
+      setEditingFeedUrl('')
       await fetchData()
       onRefresh()
     } catch (err) {
@@ -563,37 +617,88 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                         {feeds.filter(f => f.folderId === null).map((feed) => (
                           <div
                             key={feed.id}
-                            className="flex items-center justify-between p-2 bg-bg-main rounded gap-2"
+                            className="p-2 bg-bg-main rounded"
                           >
-                            <div className="flex-1 min-w-0">
-                              <div className="text-text-primary text-sm truncate">{feed.title}</div>
-                              <div className="text-text-muted text-xs truncate">{feed.url}</div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <select
-                                value={feed.folderId || ''}
-                                onChange={(e) => handleMoveFeed(
-                                  feed.id,
-                                  e.target.value ? parseInt(e.target.value) : null,
-                                  feed.title
-                                )}
-                                className="px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-xs focus:outline-none focus:border-accent-cyan"
-                              >
-                                <option value="">no_folder</option>
-                                {folders.map((folder) => (
-                                  <option key={folder.id} value={folder.id}>
-                                    {toSnakeCase(folder.name)}
-                                  </option>
-                                ))}
-                              </select>
-                              <button
-                                onClick={() => handleDeleteFeed(feed.id, feed.title)}
-                                className="px-2 py-1 text-text-secondary hover:text-red-400 text-xs"
-                                title="Delete"
-                              >
-                                🗑️
-                              </button>
-                            </div>
+                            {editingFeedId === feed.id ? (
+                              <div className="space-y-2">
+                                <input
+                                  type="text"
+                                  value={editingFeedTitle}
+                                  onChange={(e) => setEditingFeedTitle(e.target.value)}
+                                  placeholder="feed_title"
+                                  className="w-full px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-sm focus:outline-none focus:border-accent-cyan"
+                                  autoFocus
+                                />
+                                <input
+                                  type="url"
+                                  value={editingFeedUrl}
+                                  onChange={(e) => setEditingFeedUrl(e.target.value)}
+                                  placeholder="feed_url"
+                                  className="w-full px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-sm focus:outline-none focus:border-accent-cyan"
+                                />
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleEditFeed(feed.id)}
+                                    className="px-3 py-1 bg-accent-cyan text-bg-main rounded text-xs font-semibold hover:opacity-90"
+                                  >
+                                    save
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingFeedId(null)
+                                      setEditingFeedTitle('')
+                                      setEditingFeedUrl('')
+                                    }}
+                                    className="px-3 py-1 bg-bg-accent text-text-secondary rounded text-xs hover:bg-opacity-80"
+                                  >
+                                    cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-text-primary text-sm truncate">{feed.title}</div>
+                                  <div className="text-text-muted text-xs truncate">{feed.url}</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <select
+                                    value={feed.folderId || ''}
+                                    onChange={(e) => handleMoveFeed(
+                                      feed.id,
+                                      e.target.value ? parseInt(e.target.value) : null,
+                                      feed.title
+                                    )}
+                                    className="px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-xs focus:outline-none focus:border-accent-cyan"
+                                  >
+                                    <option value="">no_folder</option>
+                                    {folders.map((folder) => (
+                                      <option key={folder.id} value={folder.id}>
+                                        {toSnakeCase(folder.name)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    onClick={() => {
+                                      setEditingFeedId(feed.id)
+                                      setEditingFeedTitle(feed.title)
+                                      setEditingFeedUrl(feed.url)
+                                    }}
+                                    className="px-2 py-1 text-text-secondary hover:text-text-primary text-xs"
+                                    title="Edit"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteFeed(feed.id, feed.title)}
+                                    className="px-2 py-1 text-text-secondary hover:text-red-400 text-xs"
+                                    title="Delete"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -612,37 +717,88 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                           {folderFeeds.map((feed) => (
                             <div
                               key={feed.id}
-                              className="flex items-center justify-between p-2 bg-bg-main rounded gap-2"
+                              className="p-2 bg-bg-main rounded"
                             >
-                              <div className="flex-1 min-w-0">
-                                <div className="text-text-primary text-sm truncate">{feed.title}</div>
-                                <div className="text-text-muted text-xs truncate">{feed.url}</div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <select
-                                  value={feed.folderId || ''}
-                                  onChange={(e) => handleMoveFeed(
-                                    feed.id,
-                                    e.target.value ? parseInt(e.target.value) : null,
-                                    feed.title
-                                  )}
-                                  className="px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-xs focus:outline-none focus:border-accent-cyan"
-                                >
-                                  <option value="">no_folder</option>
-                                  {folders.map((f) => (
-                                    <option key={f.id} value={f.id}>
-                                      {toSnakeCase(f.name)}
-                                    </option>
-                                  ))}
-                                </select>
-                                <button
-                                  onClick={() => handleDeleteFeed(feed.id, feed.title)}
-                                  className="px-2 py-1 text-text-secondary hover:text-red-400 text-xs"
-                                  title="Delete"
-                                >
-                                  🗑️
-                                </button>
-                              </div>
+                              {editingFeedId === feed.id ? (
+                                <div className="space-y-2">
+                                  <input
+                                    type="text"
+                                    value={editingFeedTitle}
+                                    onChange={(e) => setEditingFeedTitle(e.target.value)}
+                                    placeholder="feed_title"
+                                    className="w-full px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-sm focus:outline-none focus:border-accent-cyan"
+                                    autoFocus
+                                  />
+                                  <input
+                                    type="url"
+                                    value={editingFeedUrl}
+                                    onChange={(e) => setEditingFeedUrl(e.target.value)}
+                                    placeholder="feed_url"
+                                    className="w-full px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-sm focus:outline-none focus:border-accent-cyan"
+                                  />
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleEditFeed(feed.id)}
+                                      className="px-3 py-1 bg-accent-cyan text-bg-main rounded text-xs font-semibold hover:opacity-90"
+                                    >
+                                      save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingFeedId(null)
+                                        setEditingFeedTitle('')
+                                        setEditingFeedUrl('')
+                                      }}
+                                      className="px-3 py-1 bg-bg-accent text-text-secondary rounded text-xs hover:bg-opacity-80"
+                                    >
+                                      cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-text-primary text-sm truncate">{feed.title}</div>
+                                    <div className="text-text-muted text-xs truncate">{feed.url}</div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <select
+                                      value={feed.folderId || ''}
+                                      onChange={(e) => handleMoveFeed(
+                                        feed.id,
+                                        e.target.value ? parseInt(e.target.value) : null,
+                                        feed.title
+                                      )}
+                                      className="px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-xs focus:outline-none focus:border-accent-cyan"
+                                    >
+                                      <option value="">no_folder</option>
+                                      {folders.map((f) => (
+                                        <option key={f.id} value={f.id}>
+                                          {toSnakeCase(f.name)}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <button
+                                      onClick={() => {
+                                        setEditingFeedId(feed.id)
+                                        setEditingFeedTitle(feed.title)
+                                        setEditingFeedUrl(feed.url)
+                                      }}
+                                      className="px-2 py-1 text-text-secondary hover:text-text-primary text-xs"
+                                      title="Edit"
+                                    >
+                                      ✏️
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteFeed(feed.id, feed.title)}
+                                      className="px-2 py-1 text-text-secondary hover:text-red-400 text-xs"
+                                      title="Delete"
+                                    >
+                                      🗑️
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>

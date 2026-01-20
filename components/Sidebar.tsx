@@ -158,7 +158,15 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between mb-1">
-          <h1 className="text-xl font-bold text-accent-cyan">piRSSonite</h1>
+          <h1 className="text-xl font-bold text-accent-cyan flex items-center gap-2">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M12 2 L20 6 L20 15 L12 22 L4 15 L4 6 Z" />
+              <path d="M12 2 L12 22" opacity="0.7" strokeWidth="1" />
+              <path d="M4 6 L20 15" opacity="0.7" strokeWidth="1" />
+              <path d="M20 6 L4 15" opacity="0.7" strokeWidth="1" />
+            </svg>
+            piRSSonite
+          </h1>
           <button
             onClick={() => setIsModalOpen(true)}
             className="text-text-secondary hover:text-accent-cyan transition-colors p-1"

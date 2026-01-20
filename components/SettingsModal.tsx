@@ -60,22 +60,31 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
     updateFontSizeOverride,
     resetOverrides,
     availableThemes,
+    watermarkEnabled,
+    watermarkColor,
+    setWatermarkEnabled,
+    setWatermarkColor,
   } = useTheme()
 
-  // Load settings from localStorage
+  // Manage modal state and settings loading
   useEffect(() => {
-    try {
-      const savedWidth = localStorage.getItem('pirssonite_card_max_width')
-      if (savedWidth) {
-        setArticleWidth(parseInt(savedWidth))
-      }
+    if (isOpen) {
+      try {
+        const savedWidth = localStorage.getItem('pirssonite_card_max_width')
+        if (savedWidth) {
+          setArticleWidth(parseInt(savedWidth))
+        }
 
-      const savedHideEmpty = localStorage.getItem('pirssonite_hide_empty_feeds')
-      if (savedHideEmpty) {
-        setHideEmptyFeeds(savedHideEmpty === 'true')
+        const savedHideEmpty = localStorage.getItem('pirssonite_hide_empty_feeds')
+        if (savedHideEmpty) {
+          setHideEmptyFeeds(savedHideEmpty === 'true')
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error)
       }
-    } catch (error) {
-      console.error('Failed to load settings:', error)
+    } else {
+      // Reset to default tab when closed
+      setActiveTab('appearance')
     }
   }, [isOpen])
 
@@ -108,7 +117,7 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
     return (
       <ManageFeedsModal
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={() => setActiveTab('appearance')} // Navigate back to settings
         onRefresh={onRefresh}
       />
     )
@@ -211,6 +220,43 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
             </span>
           )}
         </button>
+      </div>
+
+      {/* Watermark Settings */}
+      <div className="border border-border-soft rounded-lg p-4 bg-bg-card space-y-4">
+        <h4 className="text-sm font-medium text-text-primary">watermark</h4>
+
+        <div className="flex items-center justify-between">
+          <label className="text-sm text-text-secondary">enable_watermark</label>
+          <button
+            onClick={() => setWatermarkEnabled(!watermarkEnabled)}
+            className={`w-12 h-6 rounded-full transition-colors ${watermarkEnabled ? 'bg-accent-cyan' : 'bg-bg-accent'
+              }`}
+          >
+            <span
+              className={`block w-5 h-5 rounded-full bg-white shadow transform transition-transform ${watermarkEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                }`}
+            />
+          </button>
+        </div>
+
+        {watermarkEnabled && (
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={watermarkColor}
+              onChange={(e) => setWatermarkColor(e.target.value)}
+              className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
+            />
+            <span className="text-sm text-text-secondary">watermark_color</span>
+            <input
+              type="text"
+              value={watermarkColor}
+              onChange={(e) => setWatermarkColor(e.target.value)}
+              className="flex-1 px-2 py-1 bg-bg-main border border-border-soft rounded text-text-primary text-sm font-mono"
+            />
+          </div>
+        )}
       </div>
 
       {/* Color Customization Panel */}

@@ -84,10 +84,10 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { folderId, title } = body
+    const { folderId, title, url } = body
 
     // Build update data object
-    const updateData: { folderId?: number | null; title?: string } = {}
+    const updateData: { folderId?: number | null; title?: string; url?: string; customTitle?: boolean } = {}
 
     if (folderId !== undefined) {
       // Validate folder if not null
@@ -105,8 +105,23 @@ export async function PUT(
       updateData.folderId = folderId
     }
 
-    if (title !== undefined && typeof title === 'string') {
-      updateData.title = title
+    if (title !== undefined && typeof title === 'string' && title.trim()) {
+      updateData.title = title.trim()
+      // Set customTitle flag so title won't be overwritten on refresh
+      updateData.customTitle = true
+    }
+
+    if (url !== undefined && typeof url === 'string' && url.trim()) {
+      // Validate URL format
+      try {
+        new URL(url.trim())
+        updateData.url = url.trim()
+      } catch {
+        return NextResponse.json(
+          { error: 'Invalid URL format' },
+          { status: 400 }
+        )
+      }
     }
 
     // Update feed
