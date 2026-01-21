@@ -1,0 +1,2 @@
+Add the following.
+1. Text "buttons" in the header for unread and all, and have it default to only show unread, but switching to all will show all. This does not need to be persistant. It can always default back to unread when leaving a feed and then going back to it.
