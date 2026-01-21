@@ -21,9 +21,11 @@ const colorGroups = {
   },
   accent: {
     unreadBadge: 'unread_badge',
+    unreadBadgeText: 'unread_badge_text',
     readBadge: 'read_badge',
     link: 'link_color',
     hoverAccent: 'hover_accent',
+    feedsUnreadText: 'feeds_unread_text',
   },
   text: {
     primary: 'text_primary',

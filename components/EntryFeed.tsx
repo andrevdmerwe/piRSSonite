@@ -221,7 +221,7 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
                       </button>
                     </div>
                     {localUnreadCount > 0 && (
-                      <span className="text-sm font-bold bg-accent-unread text-bg-primary px-3 py-1 rounded whitespace-nowrap">
+                      <span className="text-sm font-bold bg-accent-unread text-accent-unread-text px-3 py-1 rounded whitespace-nowrap">
                         {localUnreadCount} unread
                       </span>
                     )}

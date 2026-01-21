@@ -96,7 +96,7 @@ export default function ArticleCard({ entry, onMarkRead, scrollContainerRef }: A
               read
             </span>
           ) : (
-            <span className="bg-accent-unread text-bg-primary px-2 py-1 rounded font-bold">
+            <span className="bg-accent-unread text-accent-unread-text px-2 py-1 rounded font-bold">
               unread
             </span>
           )}

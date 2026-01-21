@@ -83,9 +83,11 @@ function applyThemeToCss(theme: Theme): void {
 
     // Apply accent colors
     root.style.setProperty('--color-accent-unread', theme.colors.accent.unreadBadge)
+    root.style.setProperty('--color-accent-unread-text', theme.colors.accent.unreadBadgeText)
     root.style.setProperty('--color-accent-read', theme.colors.accent.readBadge)
     root.style.setProperty('--color-accent-link', theme.colors.accent.link)
     root.style.setProperty('--color-accent-hover', theme.colors.accent.hoverAccent)
+    root.style.setProperty('--color-accent-feeds-unread-text', theme.colors.accent.feedsUnreadText)
 
     // Apply text colors
     root.style.setProperty('--color-text-primary', theme.colors.text.primary)

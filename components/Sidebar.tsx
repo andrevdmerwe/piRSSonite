@@ -200,7 +200,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
         >
           <span>all_items</span>
           {counts && counts.total > 0 && (
-            <span className="text-xs font-bold bg-accent-unread text-bg-primary px-2 py-0.5 rounded">
+            <span className="text-xs font-bold bg-accent-unread text-accent-unread-text px-2 py-0.5 rounded">
               {counts.total}
             </span>
           )}
@@ -245,7 +245,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
           >
             <span className="truncate">{toSnakeCase(feed.title)}</span>
             {getUnreadCount(feed.id) > 0 && (
-              <span className="text-xs font-bold bg-accent-unread text-bg-primary px-2 py-0.5 rounded flex-shrink-0 ml-2">
+              <span className="text-xs font-bold text-accent-feeds-unread-text flex-shrink-0 ml-2">
                 {getUnreadCount(feed.id)}
               </span>
             )}
@@ -283,7 +283,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
                 <span>{toSnakeCase(folder.name)}</span>
               </div>
               {getFolderUnreadCount(folder.id) > 0 && (
-                <span className="text-xs font-bold bg-accent-unread text-bg-primary px-2 py-0.5 rounded">
+                <span className="text-xs font-bold bg-accent-unread text-accent-unread-text px-2 py-0.5 rounded">
                   {getFolderUnreadCount(folder.id)}
                 </span>
               )}
@@ -299,7 +299,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
               >
                 <span className="truncate">{toSnakeCase(feed.title)}</span>
                 {getUnreadCount(feed.id) > 0 && (
-                  <span className="text-xs text-text-dimmed flex-shrink-0 ml-2">
+                  <span className="text-xs text-accent-feeds-unread-text flex-shrink-0 ml-2">
                     {getUnreadCount(feed.id)}
                   </span>
                 )}

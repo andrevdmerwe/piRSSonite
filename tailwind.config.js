@@ -16,9 +16,11 @@ module.exports = {
 
         // Accent colors
         'accent-unread': 'var(--color-accent-unread)',
+        'accent-unread-text': 'var(--color-accent-unread-text)',
         'accent-read': 'var(--color-accent-read)',
         'accent-link': 'var(--color-accent-link)',
         'accent-hover': 'var(--color-accent-hover)',
+        'accent-feeds-unread-text': 'var(--color-accent-feeds-unread-text)',
 
         // Text colors
         'text-primary': 'var(--color-text-primary)',

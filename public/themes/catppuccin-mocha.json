@@ -13,9 +13,11 @@
         },
         "accent": {
             "unreadBadge": "#cba6f7",
+            "unreadBadgeText": "#1e1e2e",
             "readBadge": "#a6e3a1",
             "link": "#89b4fa",
-            "hoverAccent": "#b4befe"
+            "hoverAccent": "#b4befe",
+            "feedsUnreadText": "#cba6f7"
         },
         "text": {
             "primary": "#cdd6f4",

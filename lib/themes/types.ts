@@ -10,9 +10,11 @@ export interface ThemeBackgroundColors {
 
 export interface ThemeAccentColors {
     unreadBadge: string
+    unreadBadgeText: string
     readBadge: string
     link: string
     hoverAccent: string
+    feedsUnreadText: string
 }
 
 export interface ThemeTextColors {

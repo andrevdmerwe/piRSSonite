@@ -18,9 +18,11 @@
 
   /* Colors - Accent */
   --color-accent-unread: #FFD700;
+  --color-accent-unread-text: #1a1b26;
   --color-accent-read: #1ECB7F;
   --color-accent-link: #4AADC1;
   --color-accent-hover: #6BB8D6;
+  --color-accent-feeds-unread-text: #FFD700;
 
   /* Colors - Text */
   --color-text-primary: #E8E8E8;
