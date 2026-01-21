@@ -37,19 +37,12 @@ export default function ArticleCard({ entry, onMarkRead, scrollContainerRef }: A
 
     const scrollRoot = scrollContainerRef?.current || null
 
-    // Use rootMargin to create a detection zone only at the top
-    // Large negative bottom margin means items exiting the bottom won't trigger
-    // Small negative top margin means items must fully exit the top
     const observer = new IntersectionObserver(
       (observerEntries) => {
         observerEntries.forEach((obsEntry) => {
-          // When not intersecting and the element's top is above the container
-          // (y coordinate is negative relative to scroll container)
           if (!obsEntry.isIntersecting && !isRead) {
-            // Get the relative position to the scroll container
             const rootBounds = obsEntry.rootBounds
             if (rootBounds && obsEntry.boundingClientRect.bottom < rootBounds.top + 50) {
-              // Element has exited near the top of the scroll container
               markRead().then(() => onMarkRead?.(entry.id)).catch(console.error)
             }
           }
@@ -58,7 +51,6 @@ export default function ArticleCard({ entry, onMarkRead, scrollContainerRef }: A
       {
         threshold: 0,
         root: scrollRoot,
-        // Top margin: 0, Right: 0, Bottom: -95% (ignore bottom exit), Left: 0
         rootMargin: '0px 0px -95% 0px',
       }
     )
@@ -71,8 +63,6 @@ export default function ArticleCard({ entry, onMarkRead, scrollContainerRef }: A
   }, [isRead, markRead, scrollContainerRef, entry.id, onMarkRead])
 
   const handleTitleClick = async () => {
-    // Mark as read when title is clicked
-    // Browser will handle the link opening natively
     await markRead()
     onMarkRead?.(entry.id)
   }
@@ -93,20 +83,36 @@ export default function ArticleCard({ entry, onMarkRead, scrollContainerRef }: A
   return (
     <article
       ref={cardRef}
-      className="bg-bg-card border border-accent-border rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-shadow"
+      className="bg-bg-card backdrop-blur-glass border border-border-card rounded-lg p-4 mb-3 shadow-card hover:bg-bg-card-hover hover:border-border-card-hover hover:shadow-card-hover transition-all duration-200 cursor-pointer"
+      style={{ backdropFilter: 'var(--backdrop-blur)' }}
       data-entry-id={entry.id}
       data-is-read={isRead}
     >
-      {/* Header */}
-      <div className="flex items-center gap-2 text-xs text-text-muted mb-2">
-        {!isRead && (
-          <span className="bg-badge-bg text-badge-text px-2 py-1 rounded-full font-semibold">
-            unread
-          </span>
-        )}
-        <span>{toSnakeCase(entry.feed.title)}</span>
-        <span>·</span>
-        <span>{formatDate(entry.published)}</span>
+      {/* Header - Status & Metadata */}
+      <div className="flex items-center justify-between gap-2 text-xs mb-3">
+        <div className="flex items-center gap-2">
+          {isRead ? (
+            <span className="bg-accent-read text-bg-primary px-2 py-1 rounded font-bold">
+              read
+            </span>
+          ) : (
+            <span className="bg-accent-unread text-bg-primary px-2 py-1 rounded font-bold">
+              unread
+            </span>
+          )}
+          <span className="text-text-secondary">♦</span>
+          <span className="text-text-status">{toSnakeCase(entry.feed.title)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-text-dimmed">{formatDate(entry.published)}</span>
+          <button
+            onClick={toggleStar}
+            className="text-text-dimmed hover:text-accent-unread transition-colors"
+            title={isStarred ? 'unstar' : 'star'}
+          >
+            {isStarred ? '★' : '☆'}
+          </button>
+        </div>
       </div>
 
       {/* Title - Click to open in browser */}
@@ -115,47 +121,33 @@ export default function ArticleCard({ entry, onMarkRead, scrollContainerRef }: A
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleTitleClick}
-        className="text-lg font-semibold text-text-primary mb-2 block hover:text-accent-cyan transition-colors no-underline"
+        className="text-xl font-normal text-text-primary mb-2 block hover:text-accent-link transition-colors no-underline leading-normal"
       >
         {entry.title}
       </a>
 
       {/* Content - show preview or full based on expansion */}
       <div
-        className={`text-sm text-text-secondary mb-3 ${isExpanded ? '' : 'line-clamp-3'
-          }`}
+        className={`text-sm text-text-secondary mb-3 opacity-90 leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}
         dangerouslySetInnerHTML={{ __html: entry.content }}
       />
 
       {/* Footer - Actions */}
-      <div className="flex items-center justify-between pt-2 border-t border-border-soft">
-        <div className="flex gap-2">
+      <div className="flex items-center justify-between pt-3 border-t border-border-divider">
+        <div className="flex items-center gap-3">
+          <span className="text-text-status text-xs">rss</span>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1 px-3 py-1 rounded text-xs hover:bg-bg-accent transition-colors"
-            title={isExpanded ? 'collapse' : 'expand'}
+            className="text-xs text-text-dimmed hover:text-text-secondary transition-colors"
           >
-            <span className="text-text-secondary">
-              {isExpanded ? '▲' : '▼'}
-            </span>
-            <span className="text-text-secondary">{isExpanded ? 'collapse' : 'expand'}</span>
+            {isExpanded ? '▲ collapse' : '▼ expand'}
           </button>
-
-          <button
-            onClick={toggleStar}
-            className="flex items-center gap-1 px-3 py-1 rounded text-xs hover:bg-bg-accent transition-colors"
-            title={isStarred ? 'unstar' : 'star'}
-          >
-            <span className={isStarred ? 'text-yellow-400' : 'text-text-muted'}>
-              {isStarred ? '★' : '☆'}
-            </span>
-            <span className="text-text-secondary">{isStarred ? 'starred' : 'star'}</span>
-          </button>
-
+        </div>
+        <div className="flex items-center gap-3">
           {!isRead && (
             <button
               onClick={async () => { await markRead(); onMarkRead?.(entry.id) }}
-              className="px-3 py-1 rounded text-xs text-text-secondary hover:bg-bg-accent transition-colors"
+              className="text-xs text-text-dimmed hover:text-text-secondary transition-colors"
             >
               mark_as_read
             </button>

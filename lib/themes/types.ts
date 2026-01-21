@@ -1,73 +1,138 @@
-// Theme system type definitions
+// Theme system type definitions - New JSON-based structure
+
+// Color groups matching theme-config.json structure
+export interface ThemeBackgroundColors {
+    primary: string
+    secondary: string
+    card: string
+    cardHover: string
+}
+
+export interface ThemeAccentColors {
+    unreadBadge: string
+    readBadge: string
+    link: string
+    hoverAccent: string
+}
+
+export interface ThemeTextColors {
+    primary: string
+    secondary: string
+    dimmed: string
+    status: string
+}
+
+export interface ThemeBorderColors {
+    card: string
+    cardHover: string
+    divider: string
+}
 
 export interface ThemeColors {
-    // Backgrounds
-    'background.app': string
-    'background.sidebar': string
-    'background.panel': string
-    'background.card': string
-    'background.cardHover': string
-
-    // Borders
-    'border.default': string
-    'border.focus': string
-
-    // Text
-    'text.primary': string
-    'text.secondary': string
-    'text.muted': string
-
-    // Accents
-    'accent.primary': string
-    'accent.secondary': string
-    'accent.success': string
-    'accent.warning': string
-    'accent.danger': string
-
-    // Badges
-    'badge.unread': string
-    'badge.read': string
-    'badge.text': string  // Counter text color for contrast
-
-    // Scrollbar
-    'scrollbar.thumb': string
-    'scrollbar.track': string
+    background: ThemeBackgroundColors
+    accent: ThemeAccentColors
+    text: ThemeTextColors
+    border: ThemeBorderColors
 }
 
-export interface ThemeFonts {
-    ui: string
-    content: string
-    monospace: string
+// Typography settings
+export interface ThemeTypographySizes {
+    sectionHeader: string
+    feedItem: string
+    badge: string
+    articleTitle: string
+    articleSubtitle: string
+    preview: string
+    metadata: string
 }
 
-export interface ThemeFontSizes {
-    base: number
-    small: number
-    large: number
+export interface ThemeTypographyWeights {
+    regular: number
+    semibold: number
+    bold: number
 }
 
+export interface ThemeTypographyLineHeights {
+    compact: number
+    normal: number
+    relaxed: number
+}
+
+export interface ThemeTypography {
+    fontFamily: string
+    sizes: ThemeTypographySizes
+    weights: ThemeTypographyWeights
+    lineHeights: ThemeTypographyLineHeights
+}
+
+// Spacing and sizing
+export interface ThemeSpacing {
+    cardMargin: string
+    cardPadding: string
+    sectionSpacing: string
+    itemLineHeight: number
+    gapSmall: string
+    gapMedium: string
+    gapLarge: string
+}
+
+export interface ThemeBorderRadius {
+    card: string
+    badge: string
+    thumbnail: string
+}
+
+export interface ThemeShadows {
+    card: string
+    cardHover: string
+    thumbnail: string
+}
+
+export interface ThemeEffects {
+    glassBlur: string
+    backdropFilter: string
+    transitionDuration: string
+    transitionEasing: string
+}
+
+// Complete Theme interface
 export interface Theme {
     id: string
     name: string
     type: 'light' | 'dark'
+    version?: string
+    description?: string
     colors: ThemeColors
-    fonts: ThemeFonts
-    fontSizes: ThemeFontSizes
+    typography: ThemeTypography
+    spacing: ThemeSpacing
+    borderRadius: ThemeBorderRadius
+    shadows: ThemeShadows
+    effects: ThemeEffects
 }
 
+// User overrides - allows partial customization
 export interface ThemeOverrides {
-    colors?: Partial<ThemeColors>
-    fonts?: Partial<ThemeFonts>
-    fontSizes?: Partial<ThemeFontSizes>
+    colors?: {
+        background?: Partial<ThemeBackgroundColors>
+        accent?: Partial<ThemeAccentColors>
+        text?: Partial<ThemeTextColors>
+        border?: Partial<ThemeBorderColors>
+    }
+    typography?: {
+        fontFamily?: string
+        sizes?: Partial<ThemeTypographySizes>
+    }
 }
 
+// Theme state for persistence
 export interface ThemeState {
     activeThemeId: string
     overrides: ThemeOverrides
 }
 
-// Utility type for flattened override paths
-export type ThemeOverridePath =
-    | `colors.${keyof ThemeColors}`
-    | `fonts.${keyof ThemeFonts}`
-    | `fontSizes.${keyof ThemeFontSizes}`
+// Theme list item for dropdowns
+export interface ThemeListItem {
+    id: string
+    name: string
+    type: 'light' | 'dark'
+}

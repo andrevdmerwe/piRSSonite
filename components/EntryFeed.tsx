@@ -171,18 +171,18 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
         </div>
       ) : entries.length === 0 ? (
         <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto flex items-center justify-center h-64 relative z-1">
-          <div className="text-text-muted">no_entries_found</div>
+          <div className="text-text-dimmed">no_entries_found</div>
         </div>
       ) : (
         <>
           {/* Sticky Header Wrapper - Transparent bg extends to top for clean scroll */}
-          <div className="sticky top-0 z-10 pt-6 pb-4 bg-bg-main">
+          <div className="sticky top-0 z-10 pt-6 pb-4 bg-bg-primary">
             {/* Styled Header - Matches card width */}
-            <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto bg-bg-panel border-b-2 border-accent-cyan/30 shadow-lg rounded-lg px-6">
+            <div style={{ maxWidth: `${cardWidth}px`, backdropFilter: 'var(--backdrop-blur)' }} className="mx-auto bg-bg-card backdrop-blur-glass border border-border-card shadow-card rounded-lg px-6">
               <div className="py-4">
                 <div className="flex flex-wrap items-center justify-between gap-y-2">
                   <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold text-accent-cyan truncate max-w-[300px]" title={displayName}>{displayName}</h2>
+                    <h2 className="text-xl font-bold text-accent-link truncate max-w-[300px]" title={displayName}>{displayName}</h2>
                     <button
                       onClick={() => {
                         setLoading(true);
@@ -196,7 +196,7 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
                             setLoading(false);
                           });
                       }}
-                      className="p-1.5 rounded-full hover:bg-bg-accent text-text-muted hover:text-accent-cyan transition-colors"
+                      className="p-1.5 rounded-full hover:bg-white/10 text-text-dimmed hover:text-accent-link transition-colors"
                       title="refresh"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -206,22 +206,22 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
                   </div>
                   <div className="flex items-center gap-4 ml-auto">
                     {/* View Mode Toggle */}
-                    <div className="flex items-center gap-2 text-sm bg-bg-accent/50 p-1 rounded-md px-2 border border-accent-border/30">
+                    <div className="flex items-center gap-2 text-sm bg-white/5 p-1 rounded-md px-2 border border-border-divider">
                       <button
                         onClick={() => setViewMode('unread')}
-                        className={`px-2 py-0.5 rounded transition-colors ${viewMode === 'unread' ? 'bg-accent-cyan/20 text-accent-cyan font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
+                        className={`px-2 py-0.5 rounded transition-colors ${viewMode === 'unread' ? 'bg-accent-link/20 text-accent-link font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
                       >
                         unread
                       </button>
                       <button
                         onClick={() => setViewMode('all')}
-                        className={`px-2 py-0.5 rounded transition-colors ${viewMode === 'all' ? 'bg-accent-cyan/20 text-accent-cyan font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
+                        className={`px-2 py-0.5 rounded transition-colors ${viewMode === 'all' ? 'bg-accent-link/20 text-accent-link font-semibold' : 'text-text-secondary hover:text-text-primary'}`}
                       >
                         all
                       </button>
                     </div>
                     {localUnreadCount > 0 && (
-                      <span className="text-sm font-semibold bg-accent-purple bg-opacity-20 text-badge-text px-3 py-1 rounded-full whitespace-nowrap">
+                      <span className="text-sm font-bold bg-accent-unread text-bg-primary px-3 py-1 rounded whitespace-nowrap">
                         {localUnreadCount} unread
                       </span>
                     )}
@@ -235,7 +235,7 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
           <div style={{ maxWidth: `${cardWidth}px` }} className="mx-auto relative z-1">
             {displayedEntries.length === 0 ? (
               <div className="flex items-center justify-center h-64">
-                <div className="text-text-muted">
+                <div className="text-text-dimmed">
                   {viewMode === 'unread' ? 'no_unread_entries' : 'no_entries_found'}
                 </div>
               </div>

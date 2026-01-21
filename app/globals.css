@@ -4,68 +4,136 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Theme CSS Variables - These are set dynamically by ThemeContext */
+/* ============================================
+   RSS READER - GLASSY MORPHISM THEME VARIABLES
+   ============================================ */
+
 :root {
-  /* Default fallback values (Tokyo Night) - will be overwritten by ThemeContext */
-  --color-background-app: #1a1b26;
-  --color-background-sidebar: #16161e;
-  --color-background-panel: #1f2335;
-  --color-background-card: #24283b;
-  --color-background-cardHover: #292e42;
-  --color-border-default: #3b4261;
-  --color-border-focus: #7aa2f7;
-  --color-text-primary: #c0caf5;
-  --color-text-secondary: #a9b1d6;
-  --color-text-muted: #565f89;
-  --color-accent-primary: #7aa2f7;
-  --color-accent-secondary: #bb9af7;
-  --color-accent-success: #9ece6a;
-  --color-accent-warning: #e0af68;
-  --color-accent-danger: #f7768e;
-  --color-badge-unread: #bb9af7;
-  --color-badge-read: #9ece6a;
-  --color-badge-text: #1a1b26;
-  --color-scrollbar-thumb: #3b4261;
-  --color-scrollbar-track: transparent;
+  /* Colors - Background (set by ThemeContext) */
+  --color-bg-primary: #2a2e3e;
+  --color-bg-secondary: #2a2e3e;
+  --color-bg-card: rgba(45, 50, 65, 0.4);
+  --color-bg-card-hover: rgba(45, 50, 65, 0.6);
 
-  /* Font variables */
-  --font-ui: "Fira Code", "JetBrains Mono", "Source Code Pro", Menlo, monospace;
-  --font-content: "Fira Code", "JetBrains Mono", "Source Code Pro", Menlo, monospace;
-  --font-monospace: "Fira Code", "JetBrains Mono", "Source Code Pro", Menlo, monospace;
+  /* Colors - Accent */
+  --color-accent-unread: #FFD700;
+  --color-accent-read: #1ECB7F;
+  --color-accent-link: #4AADC1;
+  --color-accent-hover: #6BB8D6;
 
-  /* Font size variables */
-  --font-size-base: 14px;
-  --font-size-small: 12px;
-  --font-size-large: 16px;
+  /* Colors - Text */
+  --color-text-primary: #E8E8E8;
+  --color-text-secondary: #8B8B9E;
+  --color-text-dimmed: #646478;
+  --color-text-status: #4AADC1;
+
+  /* Colors - Border */
+  --color-border-card: rgba(106, 184, 214, 0.3);
+  --color-border-card-hover: rgba(106, 184, 214, 0.5);
+  --color-border-divider: rgba(106, 184, 214, 0.2);
+
+  /* Typography */
+  --font-family-mono: 'Courier New', 'Monaco', 'Menlo', monospace;
+
+  /* Font Sizes */
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 13px;
+  --font-size-lg: 14px;
+  --font-size-xl: 16px;
+  --font-size-2xl: 18px;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Line Heights */
+  --line-height-compact: 1.4;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+
+  /* Shadows */
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 12px 48px rgba(0, 0, 0, 0.4);
+  --shadow-thumbnail: 0 2px 8px rgba(0, 0, 0, 0.4);
+
+  /* Effects */
+  --backdrop-blur: blur(10px);
+  --transition-duration: 200ms;
+  --transition-easing: ease-out;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  background: var(--color-background-app);
+  background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  font-family: var(--font-ui);
+  font-family: var(--font-family-mono);
   font-size: var(--font-size-base);
-  line-height: 1.5;
+  line-height: var(--line-height-relaxed);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
 }
 
-/* Custom scrollbar */
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
 ::-webkit-scrollbar {
   width: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-scrollbar-thumb);
-  border-radius: 4px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-scrollbar-track);
+  background-color: transparent;
 }
 
-/* Ensure monospace throughout */
-* {
-  font-family: inherit;
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-card);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-border-card-hover);
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus visible for better keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-accent-link);
+  outline-offset: 2px;
 }

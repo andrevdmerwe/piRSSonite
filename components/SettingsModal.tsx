@@ -11,37 +11,41 @@ interface SettingsModalProps {
   onRefresh: () => void
 }
 
-// Human-readable labels for color tokens
-const colorLabels: Record<keyof ThemeColors, string> = {
-  'background.app': 'app_background',
-  'background.sidebar': 'sidebar_background',
-  'background.panel': 'panel_background',
-  'background.card': 'card_background',
-  'background.cardHover': 'card_hover',
-  'border.default': 'border_default',
-  'border.focus': 'border_focus',
-  'text.primary': 'text_primary',
-  'text.secondary': 'text_secondary',
-  'text.muted': 'text_muted',
-  'accent.primary': 'accent_primary',
-  'accent.secondary': 'accent_secondary',
-  'accent.success': 'accent_success',
-  'accent.warning': 'accent_warning',
-  'accent.danger': 'accent_danger',
-  'badge.unread': 'badge_unread',
-  'badge.read': 'badge_read',
-  'badge.text': 'counter_text',
-  'scrollbar.thumb': 'scrollbar_thumb',
-  'scrollbar.track': 'scrollbar_track',
+// Human-readable labels for color tokens (grouped by category)
+const colorGroups = {
+  background: {
+    primary: 'app_background',
+    secondary: 'sidebar_background',
+    card: 'card_background',
+    cardHover: 'card_hover',
+  },
+  accent: {
+    unreadBadge: 'unread_badge',
+    readBadge: 'read_badge',
+    link: 'link_color',
+    hoverAccent: 'hover_accent',
+  },
+  text: {
+    primary: 'text_primary',
+    secondary: 'text_secondary',
+    dimmed: 'text_dimmed',
+    status: 'text_status',
+  },
+  border: {
+    card: 'border_card',
+    cardHover: 'border_hover',
+    divider: 'border_divider',
+  },
 }
 
 // Font options
 const fontOptions = [
-  { value: '"Fira Code", monospace', label: 'Fira Code' },
-  { value: '"JetBrains Mono", monospace', label: 'JetBrains Mono' },
-  { value: '"Source Code Pro", monospace', label: 'Source Code Pro' },
+  { value: "'Courier New', 'Monaco', 'Menlo', monospace", label: 'Courier New' },
+  { value: "'Fira Code', monospace", label: 'Fira Code' },
+  { value: "'JetBrains Mono', monospace", label: 'JetBrains Mono' },
+  { value: "'Source Code Pro', monospace", label: 'Source Code Pro' },
   { value: 'Menlo, monospace', label: 'Menlo' },
-  { value: '"Inter", sans-serif', label: 'Inter' },
+  { value: "'Inter', sans-serif", label: 'Inter' },
   { value: 'system-ui, sans-serif', label: 'System UI' },
 ]
 
@@ -55,9 +59,9 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
     theme,
     themeId,
     overrides,
+    isLoading,
     setTheme,
     updateColorOverride,
-    updateFontSizeOverride,
     resetOverrides,
     availableThemes,
     watermarkEnabled,
@@ -124,176 +128,171 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
   }
 
   // Theme settings tab
-  const renderThemeTab = () => (
-    <div className="space-y-6">
-      {/* Theme Selection */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-2">
-          theme
-        </label>
-        <select
-          value={themeId}
-          onChange={(e) => setTheme(e.target.value)}
-          className="w-full px-3 py-2 bg-bg-card border border-border-soft rounded-lg text-text-primary focus:border-accent-cyan focus:outline-none"
-        >
-          {availableThemes.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name} ({t.type})
-            </option>
-          ))}
-        </select>
-        <p className="text-xs text-text-muted mt-2">
-          select a predefined theme to apply instantly
-        </p>
-      </div>
-
-      {/* Theme Preview Swatches */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-2">
-          current_palette
-        </label>
-        <div className="grid grid-cols-6 gap-2">
-          <div
-            className="w-full aspect-square rounded"
-            style={{ backgroundColor: theme.colors['background.app'] }}
-            title="background.app"
-          />
-          <div
-            className="w-full aspect-square rounded"
-            style={{ backgroundColor: theme.colors['background.card'] }}
-            title="background.card"
-          />
-          <div
-            className="w-full aspect-square rounded"
-            style={{ backgroundColor: theme.colors['accent.primary'] }}
-            title="accent.primary"
-          />
-          <div
-            className="w-full aspect-square rounded"
-            style={{ backgroundColor: theme.colors['accent.secondary'] }}
-            title="accent.secondary"
-          />
-          <div
-            className="w-full aspect-square rounded"
-            style={{ backgroundColor: theme.colors['accent.success'] }}
-            title="accent.success"
-          />
-          <div
-            className="w-full aspect-square rounded"
-            style={{ backgroundColor: theme.colors['accent.danger'] }}
-            title="accent.danger"
-          />
+  const renderThemeTab = () => {
+    // Show loading state if theme is not ready
+    if (isLoading || !theme) {
+      return (
+        <div className="flex items-center justify-center h-32">
+          <span className="text-text-secondary">loading_themes...</span>
         </div>
-      </div>
+      )
+    }
 
-      {/* Font Size */}
-      <div>
-        <label className="block text-sm font-medium text-text-primary mb-2">
-          font_size: <span className="text-accent-cyan">{theme.fontSizes.base}px</span>
-        </label>
-        <input
-          type="range"
-          min="10"
-          max="20"
-          step="1"
-          value={theme.fontSizes.base}
-          onChange={(e) => updateFontSizeOverride('base', parseInt(e.target.value))}
-          className="w-full h-2 bg-bg-accent rounded-lg appearance-none cursor-pointer accent-accent-cyan"
-        />
-        <div className="flex justify-between text-xs text-text-muted mt-1">
-          <span>10px (small)</span>
-          <span>20px (large)</span>
-        </div>
-      </div>
-
-      {/* Color Customization Toggle */}
-      <div>
-        <button
-          onClick={() => setShowColorCustomization(!showColorCustomization)}
-          className="flex items-center gap-2 text-sm font-medium text-text-primary hover:text-accent-cyan transition-colors"
-        >
-          <span>{showColorCustomization ? '▼' : '▶'}</span>
-          <span>customize_colors</span>
-          {Object.keys(overrides.colors || {}).length > 0 && (
-            <span className="text-xs text-accent-purple">
-              ({Object.keys(overrides.colors || {}).length} overrides)
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* Watermark Settings */}
-      <div className="border border-border-soft rounded-lg p-4 bg-bg-card space-y-4">
-        <h4 className="text-sm font-medium text-text-primary">watermark</h4>
-
-        <div className="flex items-center justify-between">
-          <label className="text-sm text-text-secondary">enable_watermark</label>
-          <button
-            onClick={() => setWatermarkEnabled(!watermarkEnabled)}
-            className={`w-12 h-6 rounded-full transition-colors ${watermarkEnabled ? 'bg-accent-cyan' : 'bg-bg-accent'
-              }`}
+    return (
+      <div className="space-y-6">
+        {/* Theme Selection */}
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-2">
+            theme
+          </label>
+          <select
+            value={themeId}
+            onChange={(e) => setTheme(e.target.value)}
+            className="w-full px-3 py-2 bg-bg-card border border-border-divider rounded-lg text-text-primary focus:border-accent-link focus:outline-none"
           >
-            <span
-              className={`block w-5 h-5 rounded-full bg-white shadow transform transition-transform ${watermarkEnabled ? 'translate-x-6' : 'translate-x-0.5'
-                }`}
+            {availableThemes.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name} ({t.type})
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-text-dimmed mt-2">
+            select a predefined theme to apply instantly
+          </p>
+        </div>
+
+        {/* Theme Preview Swatches */}
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-2">
+            current_palette
+          </label>
+          <div className="grid grid-cols-6 gap-2">
+            <div
+              className="w-full aspect-square rounded"
+              style={{ backgroundColor: theme.colors.background.primary }}
+              title="background"
             />
+            <div
+              className="w-full aspect-square rounded"
+              style={{ backgroundColor: theme.colors.background.card }}
+              title="card"
+            />
+            <div
+              className="w-full aspect-square rounded"
+              style={{ backgroundColor: theme.colors.accent.link }}
+              title="accent"
+            />
+            <div
+              className="w-full aspect-square rounded"
+              style={{ backgroundColor: theme.colors.accent.unreadBadge }}
+              title="unread"
+            />
+            <div
+              className="w-full aspect-square rounded"
+              style={{ backgroundColor: theme.colors.accent.readBadge }}
+              title="read"
+            />
+            <div
+              className="w-full aspect-square rounded"
+              style={{ backgroundColor: theme.colors.text.primary }}
+              title="text"
+            />
+          </div>
+        </div>
+
+        {/* Color Customization Toggle */}
+        <div>
+          <button
+            onClick={() => setShowColorCustomization(!showColorCustomization)}
+            className="flex items-center gap-2 text-sm font-medium text-text-primary hover:text-accent-link transition-colors"
+          >
+            <span>{showColorCustomization ? '▼' : '▶'}</span>
+            <span>customize_colors</span>
           </button>
         </div>
 
-        {watermarkEnabled && (
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={watermarkColor}
-              onChange={(e) => setWatermarkColor(e.target.value)}
-              className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
-            />
-            <span className="text-sm text-text-secondary">watermark_color</span>
-            <input
-              type="text"
-              value={watermarkColor}
-              onChange={(e) => setWatermarkColor(e.target.value)}
-              className="flex-1 px-2 py-1 bg-bg-main border border-border-soft rounded text-text-primary text-sm font-mono"
-            />
-          </div>
-        )}
-      </div>
+        {/* Watermark Settings */}
+        <div className="border border-border-divider rounded-lg p-4 bg-bg-card space-y-4">
+          <h4 className="text-sm font-medium text-text-primary">watermark</h4>
 
-      {/* Color Customization Panel */}
-      {showColorCustomization && (
-        <div className="border border-border-soft rounded-lg p-4 bg-bg-card space-y-3 max-h-64 overflow-y-auto">
-          {(Object.keys(colorLabels) as (keyof ThemeColors)[]).map((key) => (
-            <div key={key} className="flex items-center gap-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-text-secondary">enable_watermark</label>
+            <button
+              onClick={() => setWatermarkEnabled(!watermarkEnabled)}
+              className={`w-12 h-6 rounded-full transition-colors ${watermarkEnabled ? 'bg-accent-link' : 'bg-white/10'
+                }`}
+            >
+              <span
+                className={`block w-5 h-5 rounded-full bg-white shadow transform transition-transform ${watermarkEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                  }`}
+              />
+            </button>
+          </div>
+
+          {watermarkEnabled && (
+            <div className="flex items-center gap-3">
               <input
                 type="color"
-                value={theme.colors[key]}
-                onChange={(e) => updateColorOverride(key, e.target.value)}
+                value={watermarkColor}
+                onChange={(e) => setWatermarkColor(e.target.value)}
                 className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
               />
-              <span className="text-xs text-text-secondary flex-1">{colorLabels[key]}</span>
+              <span className="text-sm text-text-secondary">watermark_color</span>
               <input
                 type="text"
-                value={theme.colors[key]}
-                onChange={(e) => updateColorOverride(key, e.target.value)}
-                className="w-24 px-2 py-1 text-xs bg-bg-accent border border-border-soft rounded text-text-primary font-mono"
+                value={watermarkColor}
+                onChange={(e) => setWatermarkColor(e.target.value)}
+                className="flex-1 px-2 py-1 bg-bg-primary border border-border-divider rounded text-text-primary text-sm font-mono"
               />
             </div>
-          ))}
+          )}
         </div>
-      )}
 
-      {/* Reset Button */}
-      {(Object.keys(overrides.colors || {}).length > 0 ||
-        Object.keys(overrides.fontSizes || {}).length > 0) && (
+        {/* Color Customization Panel */}
+        {showColorCustomization && (
+          <div className="border border-border-divider rounded-lg p-4 bg-bg-card space-y-4 max-h-64 overflow-y-auto">
+            {(Object.keys(colorGroups) as (keyof typeof colorGroups)[]).map((group) => (
+              <div key={group}>
+                <h5 className="text-xs font-semibold text-text-secondary uppercase mb-2">{group}</h5>
+                <div className="space-y-2">
+                  {Object.entries(colorGroups[group]).map(([key, label]) => {
+                    const colorValue = (theme.colors[group] as Record<string, string>)[key]
+                    return (
+                      <div key={key} className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={colorValue?.startsWith('rgba') ? '#888888' : colorValue || '#888888'}
+                          onChange={(e) => updateColorOverride(group as keyof ThemeColors, key, e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent"
+                        />
+                        <span className="text-xs text-text-secondary flex-1">{label}</span>
+                        <input
+                          type="text"
+                          value={colorValue || ''}
+                          onChange={(e) => updateColorOverride(group as keyof ThemeColors, key, e.target.value)}
+                          className="w-32 px-2 py-1 text-xs bg-white/5 border border-border-divider rounded text-text-primary font-mono"
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Reset Button */}
+        {Object.keys(overrides.colors || {}).length > 0 && (
           <button
             onClick={resetOverrides}
-            className="px-4 py-2 text-sm bg-bg-accent text-text-secondary hover:text-text-primary hover:bg-bg-card-hover rounded-lg transition-colors"
+            className="px-4 py-2 text-sm bg-white/10 text-text-secondary hover:text-text-primary hover:bg-white/20 rounded-lg transition-colors"
           >
             reset_to_defaults
           </button>
         )}
-    </div>
-  )
+      </div>
+    )
+  }
 
   // Appearance settings tab (article width, hide empty)
   const renderAppearanceTab = () => (
@@ -301,9 +300,9 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
       {/* Article Width Setting */}
       <div>
         <label className="block text-sm font-medium text-text-primary mb-2">
-          article_width: <span className="text-accent-cyan">{articleWidth}px</span>
+          article_width: <span className="text-accent-link">{articleWidth}px</span>
         </label>
-        <p className="text-xs text-text-muted mb-3">
+        <p className="text-xs text-text-dimmed mb-3">
           adjust the maximum width of article cards (400-1200px)
         </p>
         <input
@@ -313,9 +312,9 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
           step="50"
           value={articleWidth}
           onChange={(e) => handleWidthChange(parseInt(e.target.value))}
-          className="w-full h-2 bg-bg-accent rounded-lg appearance-none cursor-pointer accent-accent-cyan"
+          className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent-link"
         />
-        <div className="flex justify-between text-xs text-text-muted mt-1">
+        <div className="flex justify-between text-xs text-text-dimmed mt-1">
           <span>400px (narrow)</span>
           <span>1200px (wide)</span>
         </div>
@@ -328,13 +327,13 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
             type="checkbox"
             checked={hideEmptyFeeds}
             onChange={(e) => handleHideEmptyFeedsChange(e.target.checked)}
-            className="w-4 h-4 rounded border-2 border-text-muted bg-bg-accent checked:bg-accent-cyan checked:border-accent-cyan cursor-pointer"
+            className="w-4 h-4 rounded border-2 border-text-dimmed bg-white/10 checked:bg-accent-link checked:border-accent-link cursor-pointer"
           />
           <div>
             <span className="text-sm font-medium text-text-primary">
               hide_empty_feeds
             </span>
-            <p className="text-xs text-text-muted mt-1">
+            <p className="text-xs text-text-dimmed mt-1">
               hide feeds and folders with no unread items from the sidebar
             </p>
           </div>
@@ -342,11 +341,11 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
       </div>
 
       {/* Preview */}
-      <div className="border border-border-soft rounded-lg p-4 bg-bg-card">
-        <p className="text-xs text-text-muted mb-2">preview:</p>
+      <div className="border border-border-divider rounded-lg p-4 bg-bg-card">
+        <p className="text-xs text-text-dimmed mb-2">preview:</p>
         <div
           style={{ maxWidth: `${articleWidth}px` }}
-          className="mx-auto bg-bg-accent rounded p-3 text-center text-sm text-text-secondary"
+          className="mx-auto bg-white/5 rounded p-3 text-center text-sm text-text-secondary"
         >
           article cards will be centered at this width
         </div>
@@ -356,13 +355,13 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-bg-panel rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+      <div className="bg-bg-secondary rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-border-divider">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border-soft">
+        <div className="flex items-center justify-between p-4 border-b border-border-divider">
           <h2 className="text-xl font-semibold text-text-primary">settings</h2>
           <button
             onClick={onClose}
-            className="text-text-muted hover:text-text-primary transition-colors"
+            className="text-text-dimmed hover:text-text-primary transition-colors"
             aria-label="Close"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -372,12 +371,12 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-border-soft">
+        <div className="flex border-b border-border-divider">
           <button
             onClick={() => setActiveTab('appearance')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'appearance'
-              ? 'text-accent-cyan border-b-2 border-accent-cyan'
-              : 'text-text-muted hover:text-text-secondary'
+              ? 'text-accent-link border-b-2 border-accent-link'
+              : 'text-text-dimmed hover:text-text-secondary'
               }`}
           >
             appearance
@@ -385,8 +384,8 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
           <button
             onClick={() => setActiveTab('theme')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'theme'
-              ? 'text-accent-cyan border-b-2 border-accent-cyan'
-              : 'text-text-muted hover:text-text-secondary'
+              ? 'text-accent-link border-b-2 border-accent-link'
+              : 'text-text-dimmed hover:text-text-secondary'
               }`}
           >
             theme
@@ -394,8 +393,8 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
           <button
             onClick={() => setActiveTab('feeds')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'feeds'
-              ? 'text-accent-cyan border-b-2 border-accent-cyan'
-              : 'text-text-muted hover:text-text-secondary'
+              ? 'text-accent-link border-b-2 border-accent-link'
+              : 'text-text-dimmed hover:text-text-secondary'
               }`}
           >
             manage_feeds

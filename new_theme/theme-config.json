@@ -1,0 +1,111 @@
+{
+  "name": "RSS Reader Glassy Morphism Theme",
+  "version": "1.0.0",
+  "description": "Dark mode RSS reader with glassy frosted glass aesthetic",
+  "colors": {
+    "background": {
+      "primary": "#2a2e3e",
+      "secondary": "#2a2e3e",
+      "card": "rgba(45, 50, 65, 0.4)",
+      "cardHover": "rgba(45, 50, 65, 0.6)"
+    },
+    "accent": {
+      "unreadBadge": "#FFD700",
+      "readBadge": "#1ECB7F",
+      "link": "#4AADC1",
+      "hoverAccent": "#6BB8D6"
+    },
+    "text": {
+      "primary": "#E8E8E8",
+      "secondary": "#8B8B9E",
+      "dimmed": "#646478",
+      "status": "#4AADC1"
+    },
+    "border": {
+      "card": "rgba(106, 184, 214, 0.3)",
+      "cardHover": "rgba(106, 184, 214, 0.5)",
+      "divider": "rgba(106, 184, 214, 0.2)"
+    }
+  },
+  "typography": {
+    "fontFamily": "'Courier New', 'Monaco', 'Menlo', monospace",
+    "sizes": {
+      "sectionHeader": "11px",
+      "feedItem": "13px",
+      "badge": "11px",
+      "articleTitle": "16px",
+      "articleSubtitle": "14px",
+      "preview": "13px",
+      "metadata": "11px"
+    },
+    "weights": {
+      "regular": 400,
+      "semibold": 600,
+      "bold": 700
+    },
+    "lineHeights": {
+      "compact": 1.4,
+      "normal": 1.5,
+      "relaxed": 1.6
+    }
+  },
+  "spacing": {
+    "cardMargin": "12px",
+    "cardPadding": "16px",
+    "sectionSpacing": "16px",
+    "itemLineHeight": 1.6,
+    "gapSmall": "8px",
+    "gapMedium": "12px",
+    "gapLarge": "16px"
+  },
+  "borderRadius": {
+    "card": "12px",
+    "badge": "4px",
+    "thumbnail": "6px"
+  },
+  "shadows": {
+    "card": "0 8px 32px rgba(0, 0, 0, 0.3)",
+    "cardHover": "0 12px 48px rgba(0, 0, 0, 0.4)",
+    "thumbnail": "0 2px 8px rgba(0, 0, 0, 0.4)"
+  },
+  "effects": {
+    "glassBlur": "blur(10px)",
+    "backdropFilter": "blur(10px)",
+    "transitionDuration": "200ms",
+    "transitionEasing": "ease-out"
+  },
+  "components": {
+    "sidebar": {
+      "width": "350px",
+      "background": "#2a2e3e",
+      "borderRight": "1px solid rgba(106, 184, 214, 0.2)"
+    },
+    "card": {
+      "background": "rgba(45, 50, 65, 0.4)",
+      "border": "1px solid rgba(106, 184, 214, 0.3)",
+      "borderRadius": "12px",
+      "padding": "16px",
+      "backdropFilter": "blur(10px)"
+    },
+    "badge": {
+      "readBadge": {
+        "background": "#1ECB7F",
+        "color": "#2a2e3e",
+        "padding": "4px 10px",
+        "borderRadius": "4px"
+      },
+      "unreadBadge": {
+        "background": "#FFD700",
+        "color": "#2a2e3e",
+        "padding": "4px 8px",
+        "borderRadius": "4px"
+      }
+    },
+    "thumbnail": {
+      "width": "100px",
+      "height": "80px",
+      "borderRadius": "6px",
+      "boxShadow": "0 2px 8px rgba(0, 0, 0, 0.4)"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+    "id": "osaka-jade",
+    "name": "Osaka Jade",
+    "type": "dark",
+    "version": "1.0.0",
+    "description": "Osaka Jade - dark theme with jade green accents",
+    "colors": {
+        "background": {
+            "primary": "#0d1117",
+            "secondary": "#161b22",
+            "card": "rgba(48, 54, 61, 0.85)",
+            "cardHover": "rgba(59, 67, 75, 0.9)"
+        },
+        "accent": {
+            "unreadBadge": "#58a6ff",
+            "readBadge": "#3fb950",
+            "link": "#3fb950",
+            "hoverAccent": "#56d364"
+        },
+        "text": {
+            "primary": "#e6edf3",
+            "secondary": "#b1bac4",
+            "dimmed": "#768390",
+            "status": "#3fb950"
+        },
+        "border": {
+            "card": "rgba(59, 67, 75, 0.6)",
+            "cardHover": "rgba(63, 185, 80, 0.4)",
+            "divider": "rgba(59, 67, 75, 0.4)"
+        }
+    },
+    "typography": {
+        "fontFamily": "'Fira Code', 'JetBrains Mono', 'Source Code Pro', Menlo, monospace",
+        "sizes": {
+            "sectionHeader": "11px",
+            "feedItem": "13px",
+            "badge": "11px",
+            "articleTitle": "16px",
+            "articleSubtitle": "14px",
+            "preview": "13px",
+            "metadata": "11px"
+        },
+        "weights": {
+            "regular": 400,
+            "semibold": 600,
+            "bold": 700
+        },
+        "lineHeights": {
+            "compact": 1.4,
+            "normal": 1.5,
+            "relaxed": 1.6
+        }
+    },
+    "spacing": {
+        "cardMargin": "12px",
+        "cardPadding": "16px",
+        "sectionSpacing": "16px",
+        "itemLineHeight": 1.6,
+        "gapSmall": "8px",
+        "gapMedium": "12px",
+        "gapLarge": "16px"
+    },
+    "borderRadius": {
+        "card": "10px",
+        "badge": "4px",
+        "thumbnail": "6px"
+    },
+    "shadows": {
+        "card": "0 4px 16px rgba(0, 0, 0, 0.25)",
+        "cardHover": "0 8px 24px rgba(0, 0, 0, 0.35)",
+        "thumbnail": "0 2px 8px rgba(0, 0, 0, 0.3)"
+    },
+    "effects": {
+        "glassBlur": "blur(8px)",
+        "backdropFilter": "blur(8px)",
+        "transitionDuration": "150ms",
+        "transitionEasing": "ease-out"
+    }
+}

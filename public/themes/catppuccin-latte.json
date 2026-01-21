@@ -1,0 +1,79 @@
+{
+    "id": "catppuccin-latte",
+    "name": "Catppuccin Latte",
+    "type": "light",
+    "version": "1.0.0",
+    "description": "Catppuccin Latte - soothing pastel light theme",
+    "colors": {
+        "background": {
+            "primary": "#eff1f5",
+            "secondary": "#e6e9ef",
+            "card": "rgba(204, 208, 218, 0.85)",
+            "cardHover": "rgba(188, 192, 204, 0.9)"
+        },
+        "accent": {
+            "unreadBadge": "#8839ef",
+            "readBadge": "#40a02b",
+            "link": "#1e66f5",
+            "hoverAccent": "#7287fd"
+        },
+        "text": {
+            "primary": "#4c4f69",
+            "secondary": "#5c5f77",
+            "dimmed": "#9ca0b0",
+            "status": "#1e66f5"
+        },
+        "border": {
+            "card": "rgba(172, 176, 190, 0.6)",
+            "cardHover": "rgba(30, 102, 245, 0.4)",
+            "divider": "rgba(172, 176, 190, 0.4)"
+        }
+    },
+    "typography": {
+        "fontFamily": "'Fira Code', 'JetBrains Mono', 'Source Code Pro', Menlo, monospace",
+        "sizes": {
+            "sectionHeader": "11px",
+            "feedItem": "13px",
+            "badge": "11px",
+            "articleTitle": "16px",
+            "articleSubtitle": "14px",
+            "preview": "13px",
+            "metadata": "11px"
+        },
+        "weights": {
+            "regular": 400,
+            "semibold": 600,
+            "bold": 700
+        },
+        "lineHeights": {
+            "compact": 1.4,
+            "normal": 1.5,
+            "relaxed": 1.6
+        }
+    },
+    "spacing": {
+        "cardMargin": "12px",
+        "cardPadding": "16px",
+        "sectionSpacing": "16px",
+        "itemLineHeight": 1.6,
+        "gapSmall": "8px",
+        "gapMedium": "12px",
+        "gapLarge": "16px"
+    },
+    "borderRadius": {
+        "card": "10px",
+        "badge": "4px",
+        "thumbnail": "6px"
+    },
+    "shadows": {
+        "card": "0 4px 16px rgba(0, 0, 0, 0.1)",
+        "cardHover": "0 8px 24px rgba(0, 0, 0, 0.15)",
+        "thumbnail": "0 2px 8px rgba(0, 0, 0, 0.1)"
+    },
+    "effects": {
+        "glassBlur": "blur(8px)",
+        "backdropFilter": "blur(8px)",
+        "transitionDuration": "150ms",
+        "transitionEasing": "ease-out"
+    }
+}

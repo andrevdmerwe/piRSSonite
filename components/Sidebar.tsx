@@ -154,11 +154,11 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
   }
 
   return (
-    <aside className="w-full bg-bg-panel border-r border-border-soft p-4 overflow-y-auto h-screen">
+    <aside className="w-full bg-bg-primary border-r border-border-divider p-4 overflow-y-auto h-screen">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between mb-1">
-          <h1 className="text-xl font-bold text-accent-cyan flex items-center gap-2">
+          <h1 className="text-xl font-bold text-accent-link flex items-center gap-2">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M12 2 L20 6 L20 15 L12 22 L4 15 L4 6 Z" />
               <path d="M12 2 L12 22" opacity="0.7" strokeWidth="1" />
@@ -169,7 +169,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
           </h1>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="text-text-secondary hover:text-accent-cyan transition-colors p-1"
+            className="text-text-secondary hover:text-accent-link transition-colors p-1"
             aria-label="Settings"
             title="Settings"
           >
@@ -180,7 +180,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
           </button>
         </div>
         {counts && (
-          <div className="text-xs text-text-muted">
+          <div className="text-xs text-text-dimmed">
             {counts.total} unread_articles
           </div>
         )}
@@ -188,19 +188,19 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
 
       {/* Views */}
       <div className="mb-6">
-        <h4 className="text-xs uppercase tracking-wider text-text-muted mb-2">
+        <h4 className="text-xs uppercase tracking-wider text-text-secondary font-semibold mb-3">
           views
         </h4>
         <div
           className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${selectedFeedId === 0 || selectedFeedId === undefined
-            ? 'bg-bg-accent text-accent-cyan'
-            : 'text-text-secondary hover:bg-bg-accent'
+            ? 'bg-white/5 text-accent-link'
+            : 'text-text-primary hover:bg-white/5'
             }`}
           onClick={() => onFeedSelect?.(0, 'all_items')}
         >
           <span>all_items</span>
           {counts && counts.total > 0 && (
-            <span className="text-xs font-semibold bg-accent-purple bg-opacity-20 text-badge-text px-2 py-0.5 rounded-full">
+            <span className="text-xs font-bold bg-accent-unread text-bg-primary px-2 py-0.5 rounded">
               {counts.total}
             </span>
           )}
@@ -209,22 +209,22 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
 
       {/* Folders and Feeds */}
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-xs uppercase tracking-wider text-text-muted">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-xs uppercase tracking-wider text-text-secondary font-semibold">
             feeds
           </h4>
           {folders.length > 0 && (
-            <div className="flex items-center gap-2 text-text-muted text-xs">
+            <div className="flex items-center gap-2 text-text-dimmed text-xs">
               <button
                 onClick={expandAllFolders}
-                className="hover:text-accent-cyan transition-colors"
+                className="hover:text-accent-link transition-colors"
                 title="Expand all folders"
               >
                 [+]
               </button>
               <button
                 onClick={collapseAllFolders}
-                className="hover:text-accent-cyan transition-colors"
+                className="hover:text-accent-link transition-colors"
                 title="Collapse all folders"
               >
                 [-]
@@ -238,14 +238,14 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
           <div
             key={feed.id}
             className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${selectedFeedId === feed.id
-              ? 'bg-bg-accent text-accent-cyan'
-              : 'text-text-secondary hover:bg-bg-accent'
+              ? 'bg-white/5 text-accent-link'
+              : 'text-text-primary hover:bg-white/5'
               }`}
             onClick={() => onFeedSelect?.(feed.id, feed.title)}
           >
             <span className="truncate">{toSnakeCase(feed.title)}</span>
             {getUnreadCount(feed.id) > 0 && (
-              <span className="text-xs text-text-muted flex-shrink-0 ml-2">
+              <span className="text-xs font-bold bg-accent-unread text-bg-primary px-2 py-0.5 rounded flex-shrink-0 ml-2">
                 {getUnreadCount(feed.id)}
               </span>
             )}
@@ -257,8 +257,8 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
           <div key={folder.id} className="mb-2">
             <div
               className={`flex items-center justify-between px-3 py-2 rounded transition-colors ${selectedFeedId === -folder.id
-                ? 'bg-bg-accent text-accent-cyan font-medium'
-                : 'text-text-secondary hover:bg-bg-accent font-medium'
+                ? 'bg-white/5 text-accent-link font-medium'
+                : 'text-text-primary hover:bg-white/5 font-medium'
                 }`}
             >
               <div className="flex items-center gap-1 flex-1 cursor-pointer" onClick={() => onFolderSelect?.(folder.id, folder.name)}>
@@ -267,11 +267,11 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
                     e.stopPropagation()
                     toggleFolder(folder.id)
                   }}
-                  className="text-text-muted hover:text-accent-cyan transition-all"
+                  className="text-text-secondary hover:text-accent-link transition-all"
                   aria-label={isFolderExpanded(folder.id) ? 'Collapse folder' : 'Expand folder'}
                 >
                   <svg
-                    className={`w-3 h-3 transition-transform ${isFolderExpanded(folder.id) ? 'rotate-90' : ''
+                    className={`w-3 h-3 transition-transform duration-200 ${isFolderExpanded(folder.id) ? 'rotate-90' : ''
                       }`}
                     fill="none"
                     viewBox="0 0 24 24"
@@ -283,7 +283,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
                 <span>{toSnakeCase(folder.name)}</span>
               </div>
               {getFolderUnreadCount(folder.id) > 0 && (
-                <span className="text-xs font-semibold bg-accent-purple bg-opacity-20 text-badge-text px-2 py-0.5 rounded-full">
+                <span className="text-xs font-bold bg-accent-unread text-bg-primary px-2 py-0.5 rounded">
                   {getFolderUnreadCount(folder.id)}
                 </span>
               )}
@@ -292,14 +292,14 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
               <div
                 key={feed.id}
                 className={`flex items-center justify-between px-6 py-1.5 rounded cursor-pointer transition-colors text-sm ${selectedFeedId === feed.id
-                  ? 'bg-bg-accent text-accent-cyan'
-                  : 'text-text-secondary hover:bg-bg-accent'
+                  ? 'bg-white/5 text-accent-link'
+                  : 'text-text-primary hover:bg-white/5'
                   }`}
                 onClick={() => onFeedSelect?.(feed.id, feed.title)}
               >
                 <span className="truncate">{toSnakeCase(feed.title)}</span>
                 {getUnreadCount(feed.id) > 0 && (
-                  <span className="text-xs text-text-muted flex-shrink-0 ml-2">
+                  <span className="text-xs text-text-dimmed flex-shrink-0 ml-2">
                     {getUnreadCount(feed.id)}
                   </span>
                 )}

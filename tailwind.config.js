@@ -8,34 +8,61 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Backgrounds - using CSS variables for theme support
-        'bg-main': 'var(--color-background-app)',
-        'bg-panel': 'var(--color-background-sidebar)',
-        'bg-card': 'var(--color-background-card)',
-        'bg-accent': 'var(--color-background-panel)',
-        'bg-card-hover': 'var(--color-background-cardHover)',
+        // Background colors
+        'bg-primary': 'var(--color-bg-primary)',
+        'bg-secondary': 'var(--color-bg-secondary)',
+        'bg-card': 'var(--color-bg-card)',
+        'bg-card-hover': 'var(--color-bg-card-hover)',
+
+        // Accent colors
+        'accent-unread': 'var(--color-accent-unread)',
+        'accent-read': 'var(--color-accent-read)',
+        'accent-link': 'var(--color-accent-link)',
+        'accent-hover': 'var(--color-accent-hover)',
 
         // Text colors
         'text-primary': 'var(--color-text-primary)',
         'text-secondary': 'var(--color-text-secondary)',
-        'text-muted': 'var(--color-text-muted)',
+        'text-dimmed': 'var(--color-text-dimmed)',
+        'text-status': 'var(--color-text-status)',
 
-        // Accent colors
-        'accent-cyan': 'var(--color-accent-primary)',
-        'accent-purple': 'var(--color-accent-secondary)',
-        'accent-blue': 'var(--color-accent-primary)',
-        'accent-green': 'var(--color-accent-success)',
-        'accent-border': 'var(--color-border-default)',
-
-        // UI elements
-        'badge-bg': 'var(--color-background-panel)',
-        'badge-text': 'var(--color-badge-text)',
-        'border-soft': 'var(--color-border-default)',
+        // Border colors
+        'border-card': 'var(--color-border-card)',
+        'border-card-hover': 'var(--color-border-card-hover)',
+        'border-divider': 'var(--color-border-divider)',
       },
       fontFamily: {
-        mono: ['var(--font-monospace)'],
-        ui: ['var(--font-ui)'],
-        content: ['var(--font-content)'],
+        mono: ['var(--font-family-mono)'],
+      },
+      fontSize: {
+        'xs': 'var(--font-size-xs)',
+        'sm': 'var(--font-size-sm)',
+        'base': 'var(--font-size-base)',
+        'lg': 'var(--font-size-lg)',
+        'xl': 'var(--font-size-xl)',
+      },
+      borderRadius: {
+        'sm': 'var(--radius-sm)',
+        'md': 'var(--radius-md)',
+        'lg': 'var(--radius-lg)',
+      },
+      boxShadow: {
+        'card': 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
+        'thumbnail': 'var(--shadow-thumbnail)',
+      },
+      spacing: {
+        'xs': 'var(--spacing-xs)',
+        'sm': 'var(--spacing-sm)',
+        'md': 'var(--spacing-md)',
+        'lg': 'var(--spacing-lg)',
+        'xl': 'var(--spacing-xl)',
+      },
+      transitionDuration: {
+        'theme': 'var(--transition-duration)',
+      },
+      backdropBlur: {
+        'glass': '10px',
       },
     },
   },
