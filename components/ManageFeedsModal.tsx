@@ -374,9 +374,9 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
       />
 
       {/* Modal */}
-      <div className="relative bg-bg-panel rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-bg-secondary rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-border-divider">
         {/* Header */}
-        <div className="sticky top-0 bg-bg-panel border-b border-border-soft p-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-bg-secondary border-b border-border-divider p-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-text-primary">manage_feeds</h2>
           <button
             onClick={onClose}
@@ -391,12 +391,12 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
 
         {/* Success/Error Messages */}
         {success && (
-          <div className="mx-4 mt-4 p-3 bg-green-900 bg-opacity-30 border border-green-700 rounded text-green-400 text-sm">
+          <div className="mx-4 mt-4 p-3 bg-accent-read/20 border border-accent-read rounded text-accent-read text-sm">
             {success}
           </div>
         )}
         {error && (
-          <div className="mx-4 mt-4 p-3 bg-red-900 bg-opacity-30 border border-red-700 rounded text-red-400 text-sm">
+          <div className="mx-4 mt-4 p-3 bg-red-900/30 border border-red-700 rounded text-red-400 text-sm">
             {error}
           </div>
         )}
@@ -406,13 +406,13 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
           {/* Import/Export Section */}
           <section>
             <h3 className="text-lg font-semibold text-text-primary mb-4">import_export_feeds</h3>
-            <div className="bg-bg-card rounded-lg p-4">
+            <div className="bg-bg-primary rounded-lg p-4 border border-border-divider">
               <div className="flex gap-2 mb-3">
                 {/* Export Button */}
                 <a
                   href="/api/opml/export"
                   download
-                  className="flex-1 px-4 py-2 bg-accent-cyan text-bg-main rounded font-semibold hover:opacity-90 transition-opacity text-center"
+                  className="flex-1 px-4 py-2 bg-accent-link text-bg-primary rounded font-semibold hover:opacity-90 transition-opacity text-center"
                 >
                   export_opml
                 </a>
@@ -426,7 +426,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                     className="hidden"
                     disabled={importing}
                   />
-                  <div className="px-4 py-2 bg-accent-cyan text-bg-main rounded font-semibold hover:opacity-90 transition-opacity text-center disabled:opacity-50">
+                  <div className="px-4 py-2 bg-accent-link text-bg-primary rounded font-semibold hover:opacity-90 transition-opacity text-center disabled:opacity-50">
                     {importing ? 'importing...' : 'import_opml'}
                   </div>
                 </label>
@@ -434,7 +434,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
 
               {/* Import Results */}
               {importResult && (
-                <div className="p-3 bg-bg-main rounded text-sm">
+                <div className="p-3 bg-bg-secondary rounded text-sm border border-border-divider">
                   <div className="text-text-primary">
                     ✓ imported: {importResult.imported} | skipped: {importResult.skipped}
                   </div>
@@ -456,7 +456,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
           {/* Add Feed Section */}
           <section>
             <h3 className="text-lg font-semibold text-text-primary mb-4">add_new_feed</h3>
-            <div className="bg-bg-card rounded-lg p-4">
+            <div className="bg-bg-primary rounded-lg p-4 border border-border-divider">
               <form onSubmit={handleAddFeed} className="space-y-4">
                 <div>
                   <label htmlFor="feedUrl" className="block text-sm font-medium text-text-secondary mb-2">
@@ -468,7 +468,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                     value={feedUrl}
                     onChange={(e) => setFeedUrl(e.target.value)}
                     placeholder="https://example.com/feed.rss"
-                    className="w-full px-3 py-2 bg-bg-main border border-border-soft rounded text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-cyan"
+                    className="w-full px-3 py-2 bg-bg-secondary border border-border-divider rounded text-text-primary placeholder-text-dimmed focus:outline-none focus:border-accent-link"
                     disabled={addingFeed}
                   />
                 </div>
@@ -481,7 +481,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                     id="folderId"
                     value={selectedFolderId || ''}
                     onChange={(e) => setSelectedFolderId(e.target.value ? parseInt(e.target.value) : null)}
-                    className="w-full px-3 py-2 bg-bg-main border border-border-soft rounded text-text-primary focus:outline-none focus:border-accent-cyan"
+                    className="w-full px-3 py-2 bg-bg-secondary border border-border-divider rounded text-text-primary focus:outline-none focus:border-accent-link"
                     disabled={addingFeed}
                   >
                     <option value="">no_folder</option>
@@ -496,7 +496,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                 <button
                   type="submit"
                   disabled={addingFeed}
-                  className="w-full px-4 py-2 bg-accent-cyan text-bg-main rounded font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2 bg-accent-link text-bg-primary rounded font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {addingFeed ? 'adding...' : 'add_feed'}
                 </button>
@@ -507,7 +507,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
           {/* Manage Folders Section */}
           <section>
             <h3 className="text-lg font-semibold text-text-primary mb-4">manage_folders</h3>
-            <div className="bg-bg-card rounded-lg p-4">
+            <div className="bg-bg-primary rounded-lg p-4 border border-border-divider">
               <form onSubmit={handleCreateFolder} className="mb-4">
                 <div className="flex gap-2">
                   <input
@@ -515,13 +515,13 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                     value={folderName}
                     onChange={(e) => setFolderName(e.target.value)}
                     placeholder="new_folder_name"
-                    className="flex-1 px-3 py-2 bg-bg-main border border-border-soft rounded text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-cyan"
+                    className="flex-1 px-3 py-2 bg-bg-secondary border border-border-divider rounded text-text-primary placeholder-text-dimmed focus:outline-none focus:border-accent-link"
                     disabled={creatingFolder}
                   />
                   <button
                     type="submit"
                     disabled={creatingFolder}
-                    className="px-4 py-2 bg-accent-cyan text-bg-main rounded font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-accent-link text-bg-primary rounded font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {creatingFolder ? 'creating...' : 'create_folder'}
                   </button>
@@ -529,13 +529,13 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
               </form>
 
               {folders.length === 0 ? (
-                <p className="text-text-muted text-sm text-center py-4">no_folders_yet</p>
+                <p className="text-text-dimmed text-sm text-center py-4">no_folders_yet</p>
               ) : (
                 <div className="space-y-2">
                   {folders.map((folder) => (
                     <div
                       key={folder.id}
-                      className="flex items-center justify-between p-2 bg-bg-main rounded gap-2"
+                      className="flex items-center justify-between p-2 bg-bg-secondary rounded gap-2 border border-border-divider"
                     >
                       {editingFolderId === folder.id ? (
                         <>
@@ -543,7 +543,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                             type="text"
                             value={editingFolderName}
                             onChange={(e) => setEditingFolderName(e.target.value)}
-                            className="flex-1 px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-sm focus:outline-none focus:border-accent-cyan"
+                            className="flex-1 px-2 py-1 bg-bg-primary border border-border-divider rounded text-text-primary text-sm focus:outline-none focus:border-accent-link"
                             autoFocus
                             onKeyPress={(e) => {
                               if (e.key === 'Enter') {
@@ -553,7 +553,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                           />
                           <button
                             onClick={() => handleRenameFolder(folder.id)}
-                            className="px-2 py-1 bg-accent-cyan text-bg-main rounded text-xs font-semibold hover:opacity-90"
+                            className="px-2 py-1 bg-accent-link text-bg-primary rounded text-xs font-semibold hover:opacity-90"
                           >
                             save
                           </button>
@@ -562,7 +562,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                               setEditingFolderId(null)
                               setEditingFolderName('')
                             }}
-                            className="px-2 py-1 bg-bg-accent text-text-secondary rounded text-xs hover:bg-opacity-80"
+                            className="px-2 py-1 bg-white/10 text-text-secondary rounded text-xs hover:bg-white/20"
                           >
                             cancel
                           </button>
@@ -571,7 +571,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                         <>
                           <div className="flex-1 flex items-center justify-between">
                             <span className="text-text-primary">{toSnakeCase(folder.name)}</span>
-                            <span className="text-text-muted text-sm">
+                            <span className="text-text-dimmed text-sm">
                               {feeds.filter(f => f.folderId === folder.id).length} feeds
                             </span>
                           </div>
@@ -604,20 +604,20 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
           {/* Manage Feeds Section */}
           <section>
             <h3 className="text-lg font-semibold text-text-primary mb-4">your_feeds</h3>
-            <div className="bg-bg-card rounded-lg p-4">
+            <div className="bg-bg-primary rounded-lg p-4 border border-border-divider">
               {feeds.length === 0 ? (
-                <p className="text-text-muted text-sm text-center py-4">no_feeds_yet_add_one_above</p>
+                <p className="text-text-dimmed text-sm text-center py-4">no_feeds_yet_add_one_above</p>
               ) : (
                 <div className="space-y-4">
                   {/* Feeds without folder */}
                   {feeds.filter(f => f.folderId === null).length > 0 && (
                     <div>
-                      <h4 className="text-sm font-medium text-text-muted mb-2">no_folder</h4>
+                      <h4 className="text-sm font-medium text-text-dimmed mb-2">no_folder</h4>
                       <div className="space-y-2">
                         {feeds.filter(f => f.folderId === null).map((feed) => (
                           <div
                             key={feed.id}
-                            className="p-2 bg-bg-main rounded"
+                            className="p-2 bg-bg-secondary rounded border border-border-divider"
                           >
                             {editingFeedId === feed.id ? (
                               <div className="space-y-2">
@@ -626,7 +626,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                   value={editingFeedTitle}
                                   onChange={(e) => setEditingFeedTitle(e.target.value)}
                                   placeholder="feed_title"
-                                  className="w-full px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-sm focus:outline-none focus:border-accent-cyan"
+                                  className="w-full px-2 py-1 bg-bg-primary border border-border-divider rounded text-text-primary text-sm focus:outline-none focus:border-accent-link"
                                   autoFocus
                                 />
                                 <input
@@ -634,12 +634,12 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                   value={editingFeedUrl}
                                   onChange={(e) => setEditingFeedUrl(e.target.value)}
                                   placeholder="feed_url"
-                                  className="w-full px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-sm focus:outline-none focus:border-accent-cyan"
+                                  className="w-full px-2 py-1 bg-bg-primary border border-border-divider rounded text-text-primary text-sm focus:outline-none focus:border-accent-link"
                                 />
                                 <div className="flex gap-2">
                                   <button
                                     onClick={() => handleEditFeed(feed.id)}
-                                    className="px-3 py-1 bg-accent-cyan text-bg-main rounded text-xs font-semibold hover:opacity-90"
+                                    className="px-3 py-1 bg-accent-link text-bg-primary rounded text-xs font-semibold hover:opacity-90"
                                   >
                                     save
                                   </button>
@@ -649,7 +649,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                       setEditingFeedTitle('')
                                       setEditingFeedUrl('')
                                     }}
-                                    className="px-3 py-1 bg-bg-accent text-text-secondary rounded text-xs hover:bg-opacity-80"
+                                    className="px-3 py-1 bg-white/10 text-text-secondary rounded text-xs hover:bg-opacity-80"
                                   >
                                     cancel
                                   </button>
@@ -659,7 +659,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                               <div className="flex items-center justify-between gap-2">
                                 <div className="flex-1 min-w-0">
                                   <div className="text-text-primary text-sm truncate">{feed.title}</div>
-                                  <div className="text-text-muted text-xs truncate">{feed.url}</div>
+                                  <div className="text-text-dimmed text-xs truncate">{feed.url}</div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <select
@@ -669,7 +669,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                       e.target.value ? parseInt(e.target.value) : null,
                                       feed.title
                                     )}
-                                    className="px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-xs focus:outline-none focus:border-accent-cyan"
+                                    className="px-2 py-1 bg-bg-primary border border-border-divider rounded text-text-primary text-xs focus:outline-none focus:border-accent-link"
                                   >
                                     <option value="">no_folder</option>
                                     {folders.map((folder) => (
@@ -712,12 +712,12 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
 
                     return (
                       <div key={folder.id}>
-                        <h4 className="text-sm font-medium text-text-muted mb-2">{toSnakeCase(folder.name)}</h4>
+                        <h4 className="text-sm font-medium text-text-dimmed mb-2">{toSnakeCase(folder.name)}</h4>
                         <div className="space-y-2">
                           {folderFeeds.map((feed) => (
                             <div
                               key={feed.id}
-                              className="p-2 bg-bg-main rounded"
+                              className="p-2 bg-bg-secondary rounded border border-border-divider"
                             >
                               {editingFeedId === feed.id ? (
                                 <div className="space-y-2">
@@ -726,7 +726,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                     value={editingFeedTitle}
                                     onChange={(e) => setEditingFeedTitle(e.target.value)}
                                     placeholder="feed_title"
-                                    className="w-full px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-sm focus:outline-none focus:border-accent-cyan"
+                                    className="w-full px-2 py-1 bg-bg-primary border border-border-divider rounded text-text-primary text-sm focus:outline-none focus:border-accent-link"
                                     autoFocus
                                   />
                                   <input
@@ -734,12 +734,12 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                     value={editingFeedUrl}
                                     onChange={(e) => setEditingFeedUrl(e.target.value)}
                                     placeholder="feed_url"
-                                    className="w-full px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-sm focus:outline-none focus:border-accent-cyan"
+                                    className="w-full px-2 py-1 bg-bg-primary border border-border-divider rounded text-text-primary text-sm focus:outline-none focus:border-accent-link"
                                   />
                                   <div className="flex gap-2">
                                     <button
                                       onClick={() => handleEditFeed(feed.id)}
-                                      className="px-3 py-1 bg-accent-cyan text-bg-main rounded text-xs font-semibold hover:opacity-90"
+                                      className="px-3 py-1 bg-accent-link text-bg-primary rounded text-xs font-semibold hover:opacity-90"
                                     >
                                       save
                                     </button>
@@ -749,7 +749,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                         setEditingFeedTitle('')
                                         setEditingFeedUrl('')
                                       }}
-                                      className="px-3 py-1 bg-bg-accent text-text-secondary rounded text-xs hover:bg-opacity-80"
+                                      className="px-3 py-1 bg-white/10 text-text-secondary rounded text-xs hover:bg-opacity-80"
                                     >
                                       cancel
                                     </button>
@@ -759,7 +759,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                 <div className="flex items-center justify-between gap-2">
                                   <div className="flex-1 min-w-0">
                                     <div className="text-text-primary text-sm truncate">{feed.title}</div>
-                                    <div className="text-text-muted text-xs truncate">{feed.url}</div>
+                                    <div className="text-text-dimmed text-xs truncate">{feed.url}</div>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <select
@@ -769,7 +769,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                         e.target.value ? parseInt(e.target.value) : null,
                                         feed.title
                                       )}
-                                      className="px-2 py-1 bg-bg-panel border border-border-soft rounded text-text-primary text-xs focus:outline-none focus:border-accent-cyan"
+                                      className="px-2 py-1 bg-bg-primary border border-border-divider rounded text-text-primary text-xs focus:outline-none focus:border-accent-link"
                                     >
                                       <option value="">no_folder</option>
                                       {folders.map((f) => (

@@ -35,6 +35,12 @@ module.exports = {
       },
       fontFamily: {
         mono: ['var(--font-family-mono)'],
+        'folder-name': ['var(--font-folder-name)'],
+        'feed-name': ['var(--font-feed-name)'],
+        'article-heading': ['var(--font-article-heading)'],
+        'article-body': ['var(--font-article-body)'],
+        'header': ['var(--font-header)'],
+        'badge': ['var(--font-badge)'],
       },
       fontSize: {
         'xs': 'var(--font-size-xs)',

@@ -124,6 +124,22 @@ export interface ThemeOverrides {
         fontFamily?: string
         sizes?: Partial<ThemeTypographySizes>
     }
+    fonts?: FontOverrides
+}
+
+// Per-element font customization
+export interface ElementFont {
+    family?: string
+    size?: string
+}
+
+export interface FontOverrides {
+    folderName?: ElementFont
+    feedName?: ElementFont
+    articleHeading?: ElementFont
+    articleBody?: ElementFont
+    header?: ElementFont
+    badge?: ElementFont
 }
 
 // Theme state for persistence
@@ -137,4 +153,14 @@ export interface ThemeListItem {
     id: string
     name: string
     type: 'light' | 'dark'
+    isCustom?: boolean
+}
+
+// Custom theme saved by user
+export interface CustomTheme {
+    id: string
+    name: string
+    baseThemeId: string
+    overrides: ThemeOverrides
+    createdAt: string
 }

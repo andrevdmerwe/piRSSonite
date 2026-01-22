@@ -92,11 +92,11 @@ export default function ArticleCard({ entry, onMarkRead, scrollContainerRef }: A
       <div className="flex items-center justify-between gap-2 text-xs mb-3">
         <div className="flex items-center gap-2">
           {isRead ? (
-            <span className="bg-accent-read text-bg-primary px-2 py-1 rounded font-bold">
+            <span className="bg-accent-read text-bg-primary px-2 py-1 rounded font-bold font-badge" style={{ fontSize: 'var(--font-size-badge)' }}>
               read
             </span>
           ) : (
-            <span className="bg-accent-unread text-accent-unread-text px-2 py-1 rounded font-bold">
+            <span className="bg-accent-unread text-accent-unread-text px-2 py-1 rounded font-bold font-badge" style={{ fontSize: 'var(--font-size-badge)' }}>
               unread
             </span>
           )}
@@ -121,16 +121,23 @@ export default function ArticleCard({ entry, onMarkRead, scrollContainerRef }: A
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleTitleClick}
-        className="text-xl font-normal text-text-primary mb-2 block hover:text-accent-link transition-colors no-underline leading-normal"
+        className="block hover:text-accent-link transition-colors no-underline"
       >
-        {entry.title}
+        <h3 className="font-bold text-text-primary mb-2 line-clamp-2 font-article-heading" style={{ fontSize: 'var(--font-size-article-heading)' }}>
+          {entry.title}
+        </h3>
       </a>
 
       {/* Content - show preview or full based on expansion */}
       <div
-        className={`text-sm text-text-secondary mb-3 opacity-90 leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}
-        dangerouslySetInnerHTML={{ __html: entry.content }}
-      />
+        className={`mb-3 opacity-90 leading-relaxed font-article-body ${isExpanded ? '' : 'line-clamp-3'}`}
+        style={{ fontSize: 'var(--font-size-article-body)' }}
+      >
+        <div
+          className="text-text-secondary"
+          dangerouslySetInnerHTML={{ __html: entry.content }}
+        />
+      </div>
 
       {/* Footer - Actions */}
       <div className="flex items-center justify-between pt-3 border-t border-border-divider">

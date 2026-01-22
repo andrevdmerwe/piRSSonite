@@ -46,6 +46,20 @@
   --font-size-xl: 16px;
   --font-size-2xl: 18px;
 
+  /* Per-element fonts */
+  --font-folder-name: var(--font-family-mono);
+  --font-size-folder-name: 13px;
+  --font-feed-name: var(--font-family-mono);
+  --font-size-feed-name: 13px;
+  --font-article-heading: var(--font-family-mono);
+  --font-size-article-heading: 16px;
+  --font-article-body: var(--font-family-mono);
+  --font-size-article-body: 13px;
+  --font-header: var(--font-family-mono);
+  --font-size-header: 20px;
+  --font-badge: var(--font-family-mono);
+  --font-size-badge: 11px;
+
   /* Font Weights */
   --font-weight-regular: 400;
   --font-weight-semibold: 600;

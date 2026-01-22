@@ -182,7 +182,7 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
               <div className="py-4">
                 <div className="flex flex-wrap items-center justify-between gap-y-2">
                   <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold text-accent-link truncate max-w-[300px]" title={displayName}>{displayName}</h2>
+                    <h2 className="font-bold text-accent-link truncate max-w-[300px] font-header" style={{ fontSize: 'var(--font-size-header)' }} title={displayName}>{displayName}</h2>
                     <button
                       onClick={() => {
                         setLoading(true);

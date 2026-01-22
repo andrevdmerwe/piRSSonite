@@ -280,7 +280,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
-                <span>{toSnakeCase(folder.name)}</span>
+                <span className="font-folder-name" style={{ fontSize: 'var(--font-size-folder-name)' }}>{toSnakeCase(folder.name)}</span>
               </div>
               {getFolderUnreadCount(folder.id) > 0 && (
                 <span className="text-xs font-bold bg-accent-unread text-accent-unread-text px-2 py-0.5 rounded">
@@ -297,7 +297,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
                   }`}
                 onClick={() => onFeedSelect?.(feed.id, feed.title)}
               >
-                <span className="truncate">{toSnakeCase(feed.title)}</span>
+                <span className="truncate font-feed-name" style={{ fontSize: 'var(--font-size-feed-name)' }}>{toSnakeCase(feed.title)}</span>
                 {getUnreadCount(feed.id) > 0 && (
                   <span className="text-xs text-accent-feeds-unread-text flex-shrink-0 ml-2">
                     {getUnreadCount(feed.id)}
