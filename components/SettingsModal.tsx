@@ -50,17 +50,34 @@ const fontElements: { key: keyof FontOverrides; label: string }[] = [
   { key: 'badge', label: 'Badges' },
 ]
 
-// Font options
+// Font options (Alphabetically sorted)
 const fontFamilyOptions = [
-  { value: '', label: 'Default (Theme)' },
+  { value: '', label: 'Default' },
+  // Monospace Fonts
   { value: "'Courier New', 'Monaco', 'Menlo', monospace", label: 'Courier New' },
   { value: "'Fira Code', monospace", label: 'Fira Code' },
+  { value: "'IBM Plex Mono', monospace", label: 'IBM Plex Mono' },
   { value: "'JetBrains Mono', monospace", label: 'JetBrains Mono' },
-  { value: "'Source Code Pro', monospace", label: 'Source Code Pro' },
   { value: 'Menlo, monospace', label: 'Menlo' },
+  { value: "'Roboto Mono', monospace", label: 'Roboto Mono' },
+  { value: "'Source Code Pro', monospace", label: 'Source Code Pro' },
+  { value: "'Space Mono', monospace", label: 'Space Mono' },
+
+  // Sans-serif Fonts
+  { value: "'DM Sans', sans-serif", label: 'DM Sans' },
+  { value: "'IBM Plex Sans', sans-serif", label: 'IBM Plex Sans' },
   { value: "'Inter', sans-serif", label: 'Inter' },
+  { value: "'Lato', sans-serif", label: 'Lato' },
+  { value: "'Manrope', sans-serif", label: 'Manrope' },
+  { value: "'Nunito', sans-serif", label: 'Nunito' },
+  { value: "'Roboto', sans-serif", label: 'Roboto' },
+  { value: "'Source Sans 3', sans-serif", label: 'Source Sans 3' },
   { value: 'system-ui, sans-serif', label: 'System UI' },
-]
+].sort((a, b) => {
+  if (a.value === '') return -1;
+  if (b.value === '') return 1;
+  return a.label.localeCompare(b.label);
+})
 
 const fontSizeOptions = [
   { value: '', label: 'Default' },
@@ -82,6 +99,7 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
   const [showColorCustomization, setShowColorCustomization] = useState(false)
   const [customThemeName, setCustomThemeName] = useState('')
   const [showSaveTheme, setShowSaveTheme] = useState(false)
+  const [pendingThemeId, setPendingThemeId] = useState<string | null>(null)
 
   const {
     theme,
@@ -103,6 +121,7 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
     watermarkColor,
     setWatermarkEnabled,
     setWatermarkColor,
+    updateAllFonts,
   } = useTheme()
 
   // Manage modal state and settings loading
@@ -148,6 +167,24 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
     }
   }
 
+  const handleThemeChange = (newThemeId: string) => {
+    const hasOverrides = Object.keys(overrides.colors || {}).length > 0 ||
+      Object.keys(overrides.fonts || {}).length > 0
+
+    if (hasOverrides) {
+      setPendingThemeId(newThemeId)
+    } else {
+      setTheme(newThemeId)
+    }
+  }
+
+  const confirmThemeChange = (keepOverrides: boolean) => {
+    if (pendingThemeId) {
+      setTheme(pendingThemeId, keepOverrides)
+      setPendingThemeId(null)
+    }
+  }
+
   const handleSaveCustomTheme = () => {
     if (customThemeName.trim()) {
       saveCustomTheme(customThemeName.trim())
@@ -190,7 +227,7 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
           <div className="flex gap-2">
             <select
               value={themeId}
-              onChange={(e) => setTheme(e.target.value)}
+              onChange={(e) => handleThemeChange(e.target.value)}
               className="flex-1 px-3 py-2 bg-bg-primary border border-border-divider rounded-lg text-text-primary focus:border-accent-link focus:outline-none"
             >
               <optgroup label="Built-in Themes">
@@ -361,8 +398,42 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
       return <div className="flex items-center justify-center h-32"><span className="text-text-secondary">loading...</span></div>
     }
 
+    const currentGlobalFont = theme.typography.fontFamily
+
+    // Helper to get font label
+    const getFontLabel = (value: string | undefined, isDefault: boolean) => {
+      const option = fontFamilyOptions.find(opt => opt.value === value)
+      const label = option?.label || value?.split(',')[0].replace(/['"]/g, '') || 'Default'
+      return isDefault ? `${label} *` : label
+    }
+
     return (
       <div className="space-y-6">
+        {/* Global Typography Section */}
+        <div className="p-4 bg-bg-primary border border-border-divider rounded-lg">
+          <h4 className="text-sm font-medium text-text-primary mb-3">global_typography</h4>
+          <p className="text-xs text-text-dimmed mb-4">change font family for the entire application (resets individual overrides)</p>
+
+          <div>
+            <label className="block text-xs text-text-dimmed mb-1">global_font_family</label>
+            <select
+              value={currentGlobalFont || ''}
+              onChange={(e) => updateAllFonts(e.target.value)}
+              className="w-full px-2 py-1.5 bg-bg-secondary border border-border-divider rounded text-text-primary text-sm focus:border-accent-link focus:outline-none"
+            >
+              {fontFamilyOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.value === '' && currentGlobalFont
+                    ? `${opt.label} (${getFontLabel(currentGlobalFont, false)})`
+                    : opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="border-t border-border-divider my-4"></div>
+
         <p className="text-sm text-text-dimmed">Customize fonts for individual UI elements. Changes are saved automatically.</p>
 
         {fontElements.map(({ key, label }) => {
@@ -386,7 +457,11 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
                     onChange={(e) => updateFontOverride(key, { family: e.target.value || undefined })}
                     className="w-full px-2 py-1.5 bg-bg-primary border border-border-divider rounded text-text-primary text-sm"
                   >
-                    {fontFamilyOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    {fontFamilyOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.value === '' ? `Default (${getFontLabel(currentGlobalFont, false)}) *` : opt.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -396,7 +471,11 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
                     onChange={(e) => updateFontOverride(key, { size: e.target.value || undefined })}
                     className="w-full px-2 py-1.5 bg-bg-primary border border-border-divider rounded text-text-primary text-sm"
                   >
-                    {fontSizeOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    {fontSizeOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.value === '' ? 'Default *' : opt.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -459,6 +538,38 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
           {activeTab === 'theme' && renderThemeTab()}
           {activeTab === 'typography' && renderTypographyTab()}
         </div>
+
+        {/* Theme Switch Confirmation Dialog */}
+        {pendingThemeId && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-[60] backdrop-blur-sm">
+            <div className="bg-bg-card p-6 rounded-lg shadow-xl border border-border-divider max-w-sm w-full mx-4">
+              <h3 className="text-lg font-medium text-text-primary mb-2">change_theme?</h3>
+              <p className="text-sm text-text-secondary mb-6">
+                you have active customizations. do you want to keep them or reset to the new theme's defaults?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => confirmThemeChange(false)}
+                  className="flex-1 px-4 py-2 bg-bg-secondary text-text-primary border border-border-divider rounded hover:bg-bg-primary transition-colors text-sm"
+                >
+                  reset_defaults
+                </button>
+                <button
+                  onClick={() => confirmThemeChange(true)}
+                  className="flex-1 px-4 py-2 bg-accent-link text-bg-primary rounded hover:bg-accent-hover transition-colors text-sm font-medium"
+                >
+                  keep_custom
+                </button>
+              </div>
+              <button
+                onClick={() => setPendingThemeId(null)}
+                className="mt-4 text-xs text-text-dimmed hover:text-text-secondary w-full text-center"
+              >
+                cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

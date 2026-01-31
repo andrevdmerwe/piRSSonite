@@ -29,8 +29,12 @@ piRSSonite is a self-hosted, web-based RSS aggregator. It allows users to add, o
     - Import feeds from an existing OPML file.
 - **User Interface**:
     - A three-pane layout: Sidebar for folders/feeds, a middle column for the article list, and a main pane for article content (inferred from component names).
-    - Light and Dark theme support.
-    - Font customization options.
+    - **Theme System**:
+        - Built-in Light and Dark themes.
+        - Custom theme creation and persistence.
+        - Advanced color customization with granular overrides and individual resets.
+    - **Typography**:
+        - Granular font control for headers, folders, feeds, and article content.
 
 ## 3. Technology Stack
 

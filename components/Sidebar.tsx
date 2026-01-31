@@ -34,14 +34,28 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
   const fetchFeeds = () => {
     fetch('/api/feeds')
       .then((res) => res.json())
-      .then(setFeeds)
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setFeeds(data)
+        } else {
+          console.error('Failed to fetch feeds: Response is not an array', data)
+          setFeeds([])
+        }
+      })
       .catch(console.error)
   }
 
   const fetchFolders = () => {
     fetch('/api/folders')
       .then((res) => res.json())
-      .then(setFolders)
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setFolders(data)
+        } else {
+          console.error('Failed to fetch folders: Response is not an array', data)
+          setFolders([])
+        }
+      })
       .catch(console.error)
   }
 

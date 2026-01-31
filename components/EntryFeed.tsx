@@ -87,6 +87,11 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
         }
 
         const data = await response.json()
+
+        if (!Array.isArray(data)) {
+          throw new Error('API response is not an array')
+        }
+
         console.log('[EntryFeed] Fetched', data.length, 'entries', data)
         setEntries(data)
 

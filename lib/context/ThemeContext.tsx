@@ -16,8 +16,8 @@ interface ThemeContextType {
     watermarkColor: string
     // Loading state
     isLoading: boolean
-    // Switch to a different theme
-    setTheme: (id: string) => void
+    // Switch to a different theme (optionally keep overrides)
+    setTheme: (id: string, keepOverrides?: boolean) => void
     // Update a color override (nested path like 'background.primary')
     updateColorOverride: (group: keyof ThemeColors, key: string, value: string) => void
     // Reset a single color override
@@ -43,6 +43,8 @@ interface ThemeContextType {
     // Watermark controls
     setWatermarkEnabled: (enabled: boolean) => void
     setWatermarkColor: (color: string) => void
+    // Update global font family and clear specific element overrides
+    updateAllFonts: (family: string) => void
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
@@ -322,14 +324,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         saveThemeState(themeState)
     }, [themeState])
 
-    const setTheme = useCallback((id: string) => {
+    const setTheme = useCallback((id: string, keepOverrides?: boolean) => {
         // Check if it's a built-in theme or custom theme
         if (isValidThemeId(id) || id.startsWith('custom-')) {
-            setThemeState({
+            setThemeState(prev => ({
                 activeThemeId: id,
-                // Clear overrides when switching themes
-                overrides: {},
-            })
+                // Clear overrides when switching themes unless keepOverrides is true
+                overrides: keepOverrides ? prev.overrides : {},
+            }))
         }
     }, [])
 
@@ -500,6 +502,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         }
     }, [])
 
+    const updateAllFonts = useCallback((family: string) => {
+        setThemeState(prev => ({
+            ...prev,
+            overrides: {
+                ...prev.overrides,
+                typography: {
+                    ...prev.overrides.typography,
+                    fontFamily: family,
+                },
+                // Clear specific font overrides so they inherit the new global font and default sizes
+                fonts: undefined,
+            },
+        }))
+    }, [])
+
     const value: ThemeContextType = {
         theme,
         themeId: themeState.activeThemeId,
@@ -521,6 +538,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         deleteCustomTheme,
         setWatermarkEnabled,
         setWatermarkColor,
+        updateAllFonts,
     }
 
     return (
