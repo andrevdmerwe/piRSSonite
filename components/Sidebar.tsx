@@ -4,17 +4,36 @@ import { useState, useEffect } from 'react'
 import { useUnreadCounts } from '@/lib/context/UnreadCountsContext'
 import SettingsModal from './SettingsModal'
 import { toSnakeCase } from '@/lib/utils/textUtils'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { SortableFeedItem } from './sidebar/SortableFeedItem'
+import { SortableFolderItem } from './sidebar/SortableFolderItem'
 
 interface Feed {
   id: number
   title: string
   url: string
   folderId: number | null
+  order: number
 }
 
 interface Folder {
   id: number
   name: string
+  order: number
 }
 
 interface SidebarProps {
@@ -30,6 +49,17 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
   const [expandedFolders, setExpandedFolders] = useState<Record<number, boolean>>({})
   const [hideEmptyFeeds, setHideEmptyFeeds] = useState(false)
   const { counts } = useUnreadCounts()
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   const fetchFeeds = () => {
     fetch('/api/feeds')
@@ -68,14 +98,12 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
     fetchFolders()
     fetchFeeds()
 
-    // Load folder expanded state from localStorage
     try {
       const saved = localStorage.getItem('pirssonite_folder_state')
       if (saved) {
         setExpandedFolders(JSON.parse(saved))
       }
 
-      // Load hide empty feeds setting
       const savedHideEmpty = localStorage.getItem('pirssonite_hide_empty_feeds')
       if (savedHideEmpty) {
         setHideEmptyFeeds(savedHideEmpty === 'true')
@@ -84,7 +112,6 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
       console.error('Failed to load settings:', error)
     }
 
-    // Listen for hide empty feeds changes from settings modal
     const handleHideEmptyFeedsChange = () => {
       try {
         const savedHideEmpty = localStorage.getItem('pirssonite_hide_empty_feeds')
@@ -102,7 +129,6 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
     }
   }, [])
 
-  // Save folder state to localStorage whenever it changes
   useEffect(() => {
     try {
       localStorage.setItem('pirssonite_folder_state', JSON.stringify(expandedFolders))
@@ -147,11 +173,107 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
     return expandedFolders[folderId] !== false
   }
 
-  // Filter feeds and folders based on hideEmptyFeeds setting
-  let rootFeeds = feeds.filter((f) => f.folderId === null)
-  let feedsByFolder = folders.map((folder) => ({
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (!over || active.id === over.id) {
+      return
+    }
+
+    const activeIdStr = String(active.id)
+    const overIdStr = String(over.id)
+
+    // Handle Folder Sorting
+    if (activeIdStr.startsWith('folder-') && overIdStr.startsWith('folder-')) {
+      const oldIndex = folders.findIndex(f => `folder-${f.id}` === activeIdStr)
+      const newIndex = folders.findIndex(f => `folder-${f.id}` === overIdStr)
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newFolders = arrayMove(folders, oldIndex, newIndex).map((f, i) => ({
+          ...f,
+          order: i
+        }))
+
+        setFolders(newFolders)
+
+        // Persist
+        fetch('/api/folders/reorder', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folderIds: newFolders.map(f => f.id) })
+        }).catch(console.error)
+      }
+      return
+    }
+
+    // Handle Feed Sorting
+    if (activeIdStr.startsWith('feed-') && overIdStr.startsWith('feed-')) {
+      // Find which list/container we are in
+      // Since ids are global unique (feed-X), we need to find the feed objects
+      const activeFeed = feeds.find(f => `feed-${f.id}` === activeIdStr)
+      const overFeed = feeds.find(f => `feed-${f.id}` === overIdStr)
+
+      if (!activeFeed || !overFeed) return
+
+      // Ensure we only sort within same container (Root vs Root, or Folder A vs Folder A)
+      if (activeFeed.folderId !== overFeed.folderId) {
+        return // Dragging between folders not supported in this iteration
+      }
+
+      // Filter to get the relevant list (siblings)
+      const siblings = feeds
+        .filter(f => f.folderId === activeFeed.folderId)
+        .sort((a, b) => (a.order || 0) - (b.order || 0)) // Ensure simplified sort matches visual
+
+      const oldIndex = siblings.findIndex(f => f.id === activeFeed.id)
+      const newIndex = siblings.findIndex(f => f.id === overFeed.id)
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newSiblings = arrayMove(siblings, oldIndex, newIndex)
+        // Assign new order values based on their new index
+        // We need to preserve the order relative to the *whole* list?
+        // Actually, we can just re-assign contiguous order integers for this subset
+        // starting from 0 (or keeping existing range?).
+        // Simple approach: set order = index.
+
+        const updates = newSiblings.map((f, i) => ({ ...f, order: i }))
+
+        // Update main state
+        setFeeds(prev => {
+          const next = prev.map(f => {
+            const updated = updates.find(u => u.id === f.id)
+            return updated ? updated : f
+          })
+          // Re-sort entire list by order (optional but good for consistency?)
+          // actually API returns by order. Frontend state order matters?
+          // We assume frontend renders filtered lists sorted by order.
+          return next
+        })
+
+        // Persist
+        fetch('/api/feeds/reorder', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feedIds: updates.map(f => f.id) })
+        }).catch(console.error)
+      }
+    }
+  }
+
+  // Filter and Sort feeds for display
+  // Root feeds
+  let rootFeeds = feeds
+    .filter((f) => f.folderId === null)
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+
+  // Folders sorted
+  let sortedFolders = [...folders].sort((a, b) => (a.order || 0) - (b.order || 0))
+
+  let feedsByFolder = sortedFolders.map((folder) => ({
     folder,
-    feeds: feeds.filter((f) => f.folderId === folder.id),
+    feeds: feeds
+      .filter((f) => f.folderId === folder.id)
+      .sort((a, b) => (a.order || 0) - (b.order || 0)),
   }))
 
   if (hideEmptyFeeds) {
@@ -168,9 +290,9 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
   }
 
   return (
-    <aside className="w-full bg-bg-primary border-r border-border-divider p-4 overflow-y-auto h-screen">
+    <aside className="w-full bg-bg-primary border-r border-border-divider overflow-y-auto h-screen">
       {/* Header */}
-      <div className="mb-6">
+      <div className="sticky top-0 z-20 bg-bg-primary px-4 pt-4 pb-10">
         <div className="flex items-start justify-between mb-1">
           <h1 className="text-xl font-bold text-accent-link flex items-center gap-2">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -201,7 +323,7 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
       </div>
 
       {/* Views */}
-      <div className="mb-6">
+      <div className="mb-6 px-4">
         <h4 className="text-xs uppercase tracking-wider text-text-secondary font-semibold mb-3">
           views
         </h4>
@@ -222,106 +344,77 @@ export default function Sidebar({ onFeedSelect, onFolderSelect, selectedFeedId }
       </div>
 
       {/* Folders and Feeds */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-xs uppercase tracking-wider text-text-secondary font-semibold">
-            feeds
-          </h4>
-          {folders.length > 0 && (
-            <div className="flex items-center gap-2 text-text-dimmed text-xs">
-              <button
-                onClick={expandAllFolders}
-                className="hover:text-accent-link transition-colors"
-                title="Expand all folders"
-              >
-                [+]
-              </button>
-              <button
-                onClick={collapseAllFolders}
-                className="hover:text-accent-link transition-colors"
-                title="Collapse all folders"
-              >
-                [-]
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Feeds without folders */}
-        {rootFeeds.map((feed) => (
-          <div
-            key={feed.id}
-            className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${selectedFeedId === feed.id
-              ? 'bg-white/5 text-accent-link'
-              : 'text-text-primary hover:bg-white/5'
-              }`}
-            onClick={() => onFeedSelect?.(feed.id, feed.title)}
-          >
-            <span className="truncate">{toSnakeCase(feed.title)}</span>
-            {getUnreadCount(feed.id) > 0 && (
-              <span className="text-xs font-bold text-accent-feeds-unread-text flex-shrink-0 ml-2">
-                {getUnreadCount(feed.id)}
-              </span>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="px-4 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-xs uppercase tracking-wider text-text-secondary font-semibold">
+              feeds
+            </h4>
+            {folders.length > 0 && (
+              <div className="flex items-center gap-2 text-text-dimmed text-xs">
+                <button
+                  onClick={expandAllFolders}
+                  className="hover:text-accent-link transition-colors"
+                  title="Expand all folders"
+                >
+                  [+]
+                </button>
+                <button
+                  onClick={collapseAllFolders}
+                  className="hover:text-accent-link transition-colors"
+                  title="Collapse all folders"
+                >
+                  [-]
+                </button>
+              </div>
             )}
           </div>
-        ))}
 
-        {/* Folders with feeds */}
-        {feedsByFolder.map(({ folder, feeds: folderFeeds }) => (
-          <div key={folder.id} className="mb-2">
-            <div
-              className={`flex items-center justify-between px-3 py-2 rounded transition-colors ${selectedFeedId === -folder.id
-                ? 'bg-white/5 text-accent-link font-medium'
-                : 'text-text-primary hover:bg-white/5 font-medium'
-                }`}
-            >
-              <div className="flex items-center gap-1 flex-1 cursor-pointer" onClick={() => onFolderSelect?.(folder.id, folder.name)}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    toggleFolder(folder.id)
-                  }}
-                  className="text-text-secondary hover:text-accent-link transition-all"
-                  aria-label={isFolderExpanded(folder.id) ? 'Collapse folder' : 'Expand folder'}
-                >
-                  <svg
-                    className={`w-3 h-3 transition-transform duration-200 ${isFolderExpanded(folder.id) ? 'rotate-90' : ''
-                      }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-                <span className="font-folder-name" style={{ fontSize: 'var(--font-size-folder-name)' }}>{toSnakeCase(folder.name)}</span>
-              </div>
-              {getFolderUnreadCount(folder.id) > 0 && (
-                <span className="text-xs font-bold bg-accent-unread text-accent-unread-text px-2 py-0.5 rounded">
-                  {getFolderUnreadCount(folder.id)}
-                </span>
-              )}
-            </div>
-            {isFolderExpanded(folder.id) && folderFeeds.map((feed) => (
-              <div
+          {/* Feeds without folders */}
+          <SortableContext
+            items={rootFeeds.map(f => `feed-${f.id}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            {rootFeeds.map((feed) => (
+              <SortableFeedItem
                 key={feed.id}
-                className={`flex items-center justify-between px-6 py-1.5 rounded cursor-pointer transition-colors text-sm ${selectedFeedId === feed.id
-                  ? 'bg-white/5 text-accent-link'
-                  : 'text-text-primary hover:bg-white/5'
-                  }`}
-                onClick={() => onFeedSelect?.(feed.id, feed.title)}
-              >
-                <span className="truncate font-feed-name" style={{ fontSize: 'var(--font-size-feed-name)' }}>{toSnakeCase(feed.title)}</span>
-                {getUnreadCount(feed.id) > 0 && (
-                  <span className="text-xs text-accent-feeds-unread-text flex-shrink-0 ml-2">
-                    {getUnreadCount(feed.id)}
-                  </span>
-                )}
-              </div>
+                id={`feed-${feed.id}`}
+                feed={feed}
+                isSelected={selectedFeedId === feed.id}
+                unreadCount={getUnreadCount(feed.id)}
+                onSelect={(id, title) => onFeedSelect?.(id, title)}
+              />
             ))}
-          </div>
-        ))}
-      </div>
+          </SortableContext>
+
+          {/* Folders with feeds */}
+          <SortableContext
+            items={feedsByFolder.map(f => `folder-${f.folder.id}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            {feedsByFolder.map(({ folder, feeds: folderFeeds }) => (
+              <SortableFolderItem
+                key={folder.id}
+                id={`folder-${folder.id}`}
+                folder={folder}
+                feeds={folderFeeds}
+                isSelected={selectedFeedId === -folder.id}
+                selectedFeedId={selectedFeedId}
+                isExpanded={isFolderExpanded(folder.id)}
+                unreadCount={getFolderUnreadCount(folder.id)}
+                getFeedUnreadCount={getUnreadCount}
+                onToggle={toggleFolder}
+                onFolderSelect={(id, name) => onFolderSelect?.(id, name)}
+                onFeedSelect={(id, title) => onFeedSelect?.(id, title)}
+              />
+            ))}
+          </SortableContext>
+        </div>
+      </DndContext>
 
       {/* Settings Modal */}
       <SettingsModal
