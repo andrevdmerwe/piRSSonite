@@ -54,3 +54,5 @@ Access the application at `http://localhost:3000`.
 Since SQLite is a file-based database, mounting the volume (`-v`) is crucial. If you don't mount a volume, your data will be lost every time the container recreates.
 - The `Dockerfile` sets up `/app/prisma` as the location for the DB.
 - The container start command runs `prisma db push` to ensure the schema starts correctly.
+
+
