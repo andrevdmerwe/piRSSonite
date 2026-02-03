@@ -324,7 +324,7 @@ export default function SettingsModal({ isOpen, onClose, onRefresh }: SettingsMo
                 <h5 className="text-xs font-semibold text-text-secondary uppercase mb-2">{group}</h5>
                 <div className="space-y-2">
                   {Object.entries(colorGroups[group]).map(([key, label]) => {
-                    const colorValue = (theme.colors[group] as Record<string, string>)[key]
+                    const colorValue = (theme.colors[group] as unknown as Record<string, string>)[key]
                     const isOverridden = isColorOverridden(group as keyof ThemeColors, key)
                     return (
                       <div key={key} className="flex items-center gap-2">
