@@ -117,7 +117,7 @@ docker run -d \
   --name pirssonite \
   --restart always \
   -p 3000:3000 \
-  -v ~/pirssonite-data:/app/prisma \
+  -v ~/pirssonite-data:/data \
   ghcr.io/andrevdmerwe/pirssonite:main
 ```
 
@@ -205,7 +205,7 @@ docker run -d \
   --name pirssonite \
   --restart always \
   -p 3000:3000 \
-  -v ~/pirssonite-data:/app/prisma \
+  -v ~/pirssonite-data:/data \
   ghcr.io/andrevdmerwe/pirssonite:main
 ```
 
@@ -233,7 +233,7 @@ docker run -d \
   --name pirssonite \
   --restart always \
   -p 8080:3000 \
-  -v ~/pirssonite-data:/app/prisma \
+  -v ~/pirssonite-data:/data \
   ghcr.io/andrevdmerwe/pirssonite:main
 ```
 Then access via `http://localhost:8080`.
