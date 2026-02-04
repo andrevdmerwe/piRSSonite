@@ -35,7 +35,7 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
   const [cardWidth, setCardWidth] = useState(700)
   const [hadUnreadOnFetch, setHadUnreadOnFetch] = useState(true) // Track if there were unread entries when fetched
   const [viewMode, setViewMode] = useState<'unread' | 'all'>('unread') // Toggle between unread and all
-  const { counts } = useUnreadCounts()
+  const { counts, refetchCounts } = useUnreadCounts()
   const { watermarkEnabled, watermarkColor } = useTheme()
 
   // Load article width from localStorage
@@ -206,6 +206,47 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        // Build request body based on current view
+                        const body: { feedId?: number; folderId?: number } = {};
+                        if (feedId) {
+                          body.feedId = feedId;
+                        } else if (folderId) {
+                          body.folderId = folderId;
+                        }
+                        // If neither feedId nor folderId, body is empty (mark all globally)
+
+                        try {
+                          const response = await fetch('/api/entries/clear', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body),
+                          });
+
+                          if (response.ok) {
+                            // Update local state to mark all entries as read
+                            setEntries(prev => prev.map(e => ({ ...e, isRead: true })));
+                            // Clear session unread IDs since all are now read
+                            setSessionUnreadIds(new Set());
+                            // Refresh sidebar unread counts
+                            refetchCounts();
+                          }
+                        } catch (error) {
+                          console.error('Failed to mark all as read:', error);
+                        }
+                      }}
+                      disabled={localUnreadCount === 0}
+                      className={`p-1.5 rounded-full transition-colors ${localUnreadCount === 0
+                        ? 'text-text-dimmed/30 cursor-not-allowed'
+                        : 'text-text-dimmed hover:bg-white/10 hover:text-accent-link'
+                        }`}
+                      title="mark_all_read"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </button>
                   </div>

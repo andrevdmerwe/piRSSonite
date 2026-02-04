@@ -5,21 +5,25 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const feedId = parseInt(body.feedId)
+    const feedId = body.feedId ? parseInt(body.feedId) : null
+    const folderId = body.folderId ? parseInt(body.folderId) : null
 
-    if (isNaN(feedId)) {
-      return NextResponse.json(
-        { error: 'Invalid feed ID' },
-        { status: 400 }
-      )
+    // Build where clause based on provided params
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let whereClause: any = { isRead: false }
+
+    if (feedId && !isNaN(feedId)) {
+      // Clear entries for a specific feed
+      whereClause.feedId = feedId
+    } else if (folderId && !isNaN(folderId)) {
+      // Clear entries for all feeds in a specific folder
+      whereClause.feed = { folderId: folderId }
     }
+    // If neither feedId nor folderId, clear all unread entries
 
-    // Mark all unread entries for this feed as read
+    // Mark all matching unread entries as read
     const result = await prisma.entry.updateMany({
-      where: {
-        feedId: feedId,
-        isRead: false,
-      },
+      where: whereClause,
       data: {
         isRead: true,
       },
