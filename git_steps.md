@@ -204,8 +204,8 @@ docker rm pirssonite
 docker run -d \
   --name pirssonite \
   --restart always \
-  -p 3000:3000 \
-  -v ~/pirssonite-data:/data \
+  -p 3007:3000 \
+  -v /opt/pirssonite/data:/data \
   ghcr.io/andrevdmerwe/pirssonite:main
 ```
 
@@ -232,7 +232,7 @@ Either stop the other process using port 3000, or use a different port:
 docker run -d \
   --name pirssonite \
   --restart always \
-  -p 8080:3000 \
+  -p 3007:3000 \
   -v ~/pirssonite-data:/data \
   ghcr.io/andrevdmerwe/pirssonite:main
 ```
