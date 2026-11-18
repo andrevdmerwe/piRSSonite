@@ -54,3 +54,6 @@ Thumbs.db
 *.tmp
 *.temp
 reference_images/
+
+# Vault notes (symlinks into the Obsidian vault on Ghost; machine-specific)
+Spec/
