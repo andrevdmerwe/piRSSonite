@@ -10,6 +10,9 @@ const parser = new Parser({
   },
 })
 
+const MAX_ENTRIES_PER_FEED = 200
+const MAX_CONTENT_LENGTH = 50000
+
 /**
  * Calculate the next check time based on failure count using exponential backoff
  * @param failureCount - Number of consecutive failures
@@ -23,6 +26,60 @@ export function calculateNextCheckTime(
   const backoffMultiplier = Math.pow(2, Math.min(failureCount, 8))
   const delayMs = baseInterval * backoffMultiplier
   return new Date(Date.now() + delayMs)
+}
+
+/**
+ * First valid date of the candidates, else now. One unparseable pubDate
+ * would otherwise make Prisma reject the item and fail the whole feed.
+ */
+function parseItemDate(...candidates: (string | undefined)[]): Date {
+  for (const value of candidates) {
+    if (!value) continue
+    const date = new Date(value)
+    if (!isNaN(date.getTime())) return date
+    // A bad zone token, e.g. 3dprintingprogress.com's "Wed, 11 Nov 2026 ZZZ"
+    const withoutZone = new Date(value.replace(/\s+[A-Za-z]+$/, ''))
+    if (!isNaN(withoutZone.getTime())) return withoutZone
+  }
+  return new Date()
+}
+
+/**
+ * Parse RSS/Atom XML into a title and sanitised entries.
+ * Items without a link or a title are dropped.
+ */
+async function parseFeedXml(xmlText: string): Promise<{ title?: string; entries: ParsedEntry[] }> {
+  const feed = await parser.parseString(xmlText)
+
+  const entries: ParsedEntry[] = feed.items
+    .map(item => {
+      if (!item.link || !item.title) return null
+
+      const rawContent = item.content || item.contentSnippet || item.summary || ''
+      const content = sanitizeHtml(rawContent, {
+        allowedTags: ['p', 'br', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'img'],
+        allowedAttributes: {
+          a: ['href', 'title', 'target'],
+          img: ['src', 'alt', 'title', 'width', 'height'],
+        },
+        allowedSchemes: ['http', 'https', 'mailto'],
+      })
+
+      const truncatedContent = content.length > MAX_CONTENT_LENGTH
+        ? content.substring(0, MAX_CONTENT_LENGTH) + '... [content truncated]'
+        : content
+
+      return {
+        url: item.link,
+        title: item.title,
+        content: truncatedContent,
+        published: parseItemDate(item.pubDate, item.isoDate),
+      }
+    })
+    .filter((entry): entry is ParsedEntry => entry !== null)
+    .slice(0, MAX_ENTRIES_PER_FEED)
+
+  return { title: feed.title, entries }
 }
 
 /**
@@ -46,43 +103,13 @@ export async function fetchAndParseFeed(url: string): Promise<ParsedFeed> {
     }
 
     const xmlText = await response.text()
-    const feed = await parser.parseString(xmlText)
+    const { title, entries } = await parseFeedXml(xmlText)
 
     // Extract WebSub hub and topic using proper RFC 5988 discovery
     const { hubUrl, topicUrl } = await discoverWebSubEndpoints(url, xmlText, response.headers)
 
-    const entries: ParsedEntry[] = feed.items
-      .map(item => {
-        if (!item.link || !item.title) return null
-
-        // Sanitize HTML content
-        const rawContent = item.content || item.contentSnippet || item.summary || ''
-        const content = sanitizeHtml(rawContent, {
-          allowedTags: ['p', 'br', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'img'],
-          allowedAttributes: {
-            a: ['href', 'title', 'target'],
-            img: ['src', 'alt', 'title', 'width', 'height'],
-          },
-          allowedSchemes: ['http', 'https', 'mailto'],
-        })
-
-        // Truncate very large content (max 50KB)
-        const truncatedContent = content.length > 50000
-          ? content.substring(0, 50000) + '... [content truncated]'
-          : content
-
-        return {
-          url: item.link,
-          title: item.title,
-          content: truncatedContent,
-          published: item.pubDate ? new Date(item.pubDate) : new Date(),
-        }
-      })
-      .filter((entry): entry is ParsedEntry => entry !== null)
-      .slice(0, 200) // Keep only 200 most recent entries
-
     return {
-      title: feed.title || url,
+      title: title || url,
       entries,
       hubUrl,
       topicUrl,
@@ -109,8 +136,8 @@ export async function truncateOldEntries(feedId: number, prisma: any): Promise<v
   })
 
   // If more than 200 entries, delete the oldest ones
-  if (entries.length > 200) {
-    const idsToKeep = entries.slice(0, 200).map((e: { id: number }) => e.id)
+  if (entries.length > MAX_ENTRIES_PER_FEED) {
+    const idsToKeep = entries.slice(0, MAX_ENTRIES_PER_FEED).map((e: { id: number }) => e.id)
     await prisma.entry.deleteMany({
       where: {
         feedId,
@@ -120,6 +147,44 @@ export async function truncateOldEntries(feedId: number, prisma: any): Promise<v
       },
     })
   }
+}
+
+/**
+ * Insert entries whose URL is new for this feed, then trim the feed to the
+ * newest 200. Call inside a transaction.
+ * @returns Number of entries inserted
+ */
+export async function storeNewEntries(feedId: number, entries: ParsedEntry[], tx: any): Promise<number> {
+  if (entries.length === 0) return 0
+
+  // Manually skip duplicates (SQLite has no createMany skipDuplicates)
+  const existingEntries = await tx.entry.findMany({
+    where: { feedId },
+    select: { url: true },
+  })
+  // Also drops repeats within the payload: some feeds list the same link
+  // twice, and inserting both breaks the (feedId, url) unique constraint
+  const seenUrls = new Set<string>(existingEntries.map((e: { url: string }) => e.url))
+  const newEntries = entries.filter(entry => {
+    if (seenUrls.has(entry.url)) return false
+    seenUrls.add(entry.url)
+    return true
+  })
+
+  for (const entry of newEntries) {
+    await tx.entry.create({
+      data: {
+        url: entry.url,
+        title: entry.title,
+        content: entry.content,
+        published: entry.published,
+        feedId,
+      },
+    })
+  }
+
+  await truncateOldEntries(feedId, tx)
+  return newEntries.length
 }
 
 /**
@@ -136,68 +201,9 @@ export async function parseAndStoreFeed(
 ): Promise<void> {
   const prismaToUse = prismaClient || (await import('@/lib/prisma')).prisma
 
-  const feed = await parser.parseString(xmlText)
+  const { entries } = await parseFeedXml(xmlText)
 
-  const entries: ParsedEntry[] = feed.items
-    .map(item => {
-      if (!item.link || !item.title) return null
-
-      // Sanitize HTML content
-      const rawContent = item.content || item.contentSnippet || item.summary || ''
-      const content = sanitizeHtml(rawContent, {
-        allowedTags: ['p', 'br', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'img'],
-        allowedAttributes: {
-          a: ['href', 'title', 'target'],
-          img: ['src', 'alt', 'title', 'width', 'height'],
-        },
-        allowedSchemes: ['http', 'https', 'mailto'],
-      })
-
-      // Truncate very large content (max 50KB)
-      const truncatedContent = content.length > 50000
-        ? content.substring(0, 50000) + '... [content truncated]'
-        : content
-
-      return {
-        url: item.link,
-        title: item.title,
-        content: truncatedContent,
-        published: item.pubDate ? new Date(item.pubDate) : new Date(),
-      }
-    })
-    .filter((entry): entry is ParsedEntry => entry !== null)
-    .slice(0, 200)
-
-  // Add new entries in a transaction
   await prismaToUse.$transaction(async (tx: any) => {
-    if (entries.length > 0) {
-      // Get existing entry URLs for this feed
-      const existingEntries = await tx.entry.findMany({
-        where: { feedId },
-        select: { url: true },
-      })
-      const existingUrls = new Set(existingEntries.map((e: any) => e.url))
-
-      // Filter out entries that already exist
-      const newEntries = entries.filter(entry => !existingUrls.has(entry.url))
-
-      // Insert only new entries
-      if (newEntries.length > 0) {
-        for (const entry of newEntries) {
-          await tx.entry.create({
-            data: {
-              url: entry.url,
-              title: entry.title,
-              content: entry.content,
-              published: entry.published,
-              feedId,
-            },
-          })
-        }
-      }
-
-      // Truncate old entries to keep only 200 most recent
-      await truncateOldEntries(feedId, tx)
-    }
+    await storeNewEntries(feedId, entries, tx)
   })
 }

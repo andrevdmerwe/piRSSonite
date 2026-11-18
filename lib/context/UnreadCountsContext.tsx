@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { UnreadCounts } from '../types'
+import { REFRESHED_EVENT } from '../utils/refreshClient'
 
 interface UnreadCountsContextType {
   counts: UnreadCounts | null
@@ -40,7 +41,19 @@ export function UnreadCountsProvider({ children }: { children: React.ReactNode }
     // Poll every 30 seconds
     const interval = setInterval(fetchCounts, 30000)
 
-    return () => clearInterval(interval)
+    // Update straight away after a browser-initiated refresh, and when the
+    // tab comes back (the server refreshes while it sits in the background)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchCounts()
+    }
+    window.addEventListener(REFRESHED_EVENT, fetchCounts)
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener(REFRESHED_EVENT, fetchCounts)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [fetchCounts])
 
   return (

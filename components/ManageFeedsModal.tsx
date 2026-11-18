@@ -8,6 +8,39 @@ interface Feed {
   title: string
   url: string
   folderId: number | null
+  lastFetched: string | null
+  nextCheckAt: string
+  failureCount: number
+  isAvailable: boolean
+  lastError: string | null
+  lastErrorAt: string | null
+}
+
+function formatWhen(value: string | null): string {
+  if (!value) return 'never'
+  const date = new Date(value)
+  const minutes = Math.round((Date.now() - date.getTime()) / 60000)
+  if (minutes >= 0 && minutes < 60) return `${minutes} min ago`
+  return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+}
+
+/** One line of fetch health under a feed: last success, and why it fails if it does */
+function FeedStatus({ feed }: { feed: Feed }) {
+  if (!feed.isAvailable) {
+    return <div className="text-text-dimmed text-xs truncate">paused · last_ok {formatWhen(feed.lastFetched)}</div>
+  }
+  if (feed.failureCount === 0) {
+    return <div className="text-text-dimmed text-xs truncate">last_ok {formatWhen(feed.lastFetched)}</div>
+  }
+  const summary = `failed ${feed.failureCount}× · last_ok ${formatWhen(feed.lastFetched)} · next_try ${formatWhen(feed.nextCheckAt)}`
+  const detail = feed.lastError
+    ? `${feed.lastError}${feed.lastErrorAt ? ` (${formatWhen(feed.lastErrorAt)})` : ''}`
+    : undefined
+  return (
+    <div className="text-red-400 text-xs truncate" title={detail ? `${summary}\n${detail}` : summary}>
+      {summary}{feed.lastError ? ` · ${feed.lastError}` : ''}
+    </div>
+  )
 }
 
 interface Folder {
@@ -660,6 +693,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                 <div className="flex-1 min-w-0">
                                   <div className="text-text-primary text-sm truncate">{feed.title}</div>
                                   <div className="text-text-dimmed text-xs truncate">{feed.url}</div>
+                                  <FeedStatus feed={feed} />
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <select
@@ -760,6 +794,7 @@ export default function ManageFeedsModal({ isOpen, onClose, onRefresh }: ManageF
                                   <div className="flex-1 min-w-0">
                                     <div className="text-text-primary text-sm truncate">{feed.title}</div>
                                     <div className="text-text-dimmed text-xs truncate">{feed.url}</div>
+                                    <FeedStatus feed={feed} />
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <select

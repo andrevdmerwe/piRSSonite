@@ -21,4 +21,6 @@ export interface UnreadCounts {
 export interface RefreshResult {
   refreshed: number
   errors: string[]
+  /** Entries inserted across all refreshed feeds */
+  newEntries?: number
 }

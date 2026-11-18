@@ -56,13 +56,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modul
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
 # Create startup script
+# `prisma db push` runs on every start: it creates the database if missing and
+# adds new columns to an existing one. It refuses any change that would lose
+# data (no --accept-data-loss), and set -e then stops the container.
 RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'set -e' >> /app/start.sh && \
     echo 'cd /app' >> /app/start.sh && \
-    echo 'if [ ! -f /data/main.db ]; then' >> /app/start.sh && \
-    echo '  echo "Initializing database..."' >> /app/start.sh && \
-    echo '  prisma db push --schema=/app/prisma/schema.prisma --skip-generate' >> /app/start.sh && \
-    echo 'fi' >> /app/start.sh && \
+    echo 'echo "Syncing database schema..."' >> /app/start.sh && \
+    echo 'prisma db push --schema=/app/prisma/schema.prisma --skip-generate' >> /app/start.sh && \
     echo 'exec node server.js' >> /app/start.sh && \
     chmod +x /app/start.sh
 

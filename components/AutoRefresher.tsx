@@ -1,42 +1,24 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useUnreadCounts } from '@/lib/context/UnreadCountsContext'
+import { refreshFeeds } from '@/lib/utils/refreshClient'
 
+/**
+ * Refresh due feeds once when the app opens. The server refreshes on its own
+ * schedule (lib/refresh/scheduler.ts); this only pulls in anything due right
+ * now so the first view is current.
+ */
 export default function AutoRefresher() {
-  const { refetchCounts } = useUnreadCounts()
-
   useEffect(() => {
-    // Delay initial refresh by 2 seconds to allow UI to become interactive
-    const initialRefreshTimeout = setTimeout(() => {
-      fetch('/api/refresh', { method: 'POST' })
-        .then(res => res.json())
-        .then(data => {
-          console.log('Initial refresh:', data)
-          // Refetch counts after initial refresh completes
-          refetchCounts()
-        })
+    // Delay by 2 seconds so the UI becomes interactive first
+    const timeout = setTimeout(() => {
+      refreshFeeds()
+        .then(data => console.log('Initial refresh:', data))
         .catch(err => console.error('Refresh error:', err))
     }, 2000)
 
-    // Then every 15 minutes
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch('/api/refresh', { method: 'POST' })
-        const data = await response.json()
-        console.log('Refresh complete:', data)
-        // Refetch counts after periodic refresh
-        refetchCounts()
-      } catch (err) {
-        console.error('Refresh error:', err)
-      }
-    }, 15 * 60 * 1000) // 15 minutes
+    return () => clearTimeout(timeout)
+  }, [])
 
-    return () => {
-      clearTimeout(initialRefreshTimeout)
-      clearInterval(interval)
-    }
-  }, [refetchCounts])
-
-  return null // This component renders nothing
+  return null
 }

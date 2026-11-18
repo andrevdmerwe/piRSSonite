@@ -4,4 +4,7 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
 export const prisma = globalForPrisma.prisma || new PrismaClient()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Keep one client per process. Next.js bundles instrumentation.ts (the refresh
+// scheduler) separately from the route handlers, so without this production
+// would open two clients against the same SQLite file.
+globalForPrisma.prisma = prisma

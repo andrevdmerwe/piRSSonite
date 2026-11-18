@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, RefObject } from 'react'
+import { useState, useEffect, useLayoutEffect, useCallback, useRef, RefObject } from 'react'
 import ArticleCard from './ArticleCard'
 import { useUnreadCounts } from '@/lib/context/UnreadCountsContext'
 import { useTheme } from '@/lib/context/ThemeContext'
 import { toSnakeCase } from '@/lib/utils/textUtils'
+import { refreshFeeds, REFRESHED_EVENT } from '@/lib/utils/refreshClient'
 
 interface Entry {
   id: number
@@ -33,7 +34,6 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cardWidth, setCardWidth] = useState(700)
-  const [hadUnreadOnFetch, setHadUnreadOnFetch] = useState(true) // Track if there were unread entries when fetched
   const [viewMode, setViewMode] = useState<'unread' | 'all'>('unread') // Toggle between unread and all
   const { counts, refetchCounts } = useUnreadCounts()
   const { watermarkEnabled, watermarkColor } = useTheme()
@@ -68,51 +68,166 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
   // to prevent them from vanishing immediately when marked as read.
   const [sessionUnreadIds, setSessionUnreadIds] = useState<Set<number>>(new Set())
 
-  useEffect(() => {
-    const fetchEntries = async () => {
-      setLoading(true)
-      setError(null)
+  // Entries that arrived after the list was loaded, held back while the
+  // reader is scrolled down (see checkForNew)
+  const [pendingEntries, setPendingEntries] = useState<Entry[]>([])
+  const [refreshing, setRefreshing] = useState(false)
+  const [refreshMessage, setRefreshMessage] = useState<{ text: string; detail?: string } | null>(null)
 
-      try {
-        let url = '/api/entries?limit=1000'
-        if (feedId) {
-          url += `&feedId=${feedId}`
-        } else if (folderId) {
-          url += `&folderId=${folderId}`
-        }
+  const entriesRef = useRef<Entry[]>([])
+  entriesRef.current = entries
+  // Bumped on every selection change so late responses for the old selection are dropped
+  const selectionRef = useRef(0)
+  // Set by the refresh button: show whatever the refresh brought in, even if scrolled down
+  const forceShowNewRef = useRef(false)
+  const scrollToTopRef = useRef(false)
 
-        const response = await fetch(url, { cache: 'no-store' })
-        if (!response.ok) {
-          throw new Error('Failed to fetch entries')
-        }
-
-        const data = await response.json()
-
-        if (!Array.isArray(data)) {
-          throw new Error('API response is not an array')
-        }
-
-        console.log('[EntryFeed] Fetched', data.length, 'entries', data)
-        setEntries(data)
-
-        // Mark which ones were unread at fetch time
-        const unreadIds = new Set<number>(data.filter((e: Entry) => !e.isRead).map((e: Entry) => e.id))
-        setSessionUnreadIds(unreadIds)
-
-        // Track if there were any unread entries at fetch time for initial view determination
-        setHadUnreadOnFetch(unreadIds.size > 0)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
-        console.error('Failed to fetch entries:', err)
-      } finally {
-        setLoading(false)
-      }
+  const entriesUrl = useCallback(() => {
+    let url = '/api/entries?limit=1000'
+    if (feedId) {
+      url += `&feedId=${feedId}`
+    } else if (folderId) {
+      url += `&folderId=${folderId}`
     }
+    return url
+  }, [feedId, folderId])
 
+  const loadEntries = useCallback(async (url: string): Promise<Entry[]> => {
+    const response = await fetch(url, { cache: 'no-store' })
+    if (!response.ok) {
+      throw new Error('Failed to fetch entries')
+    }
+    const data = await response.json()
+    if (!Array.isArray(data)) {
+      throw new Error('API response is not an array')
+    }
+    return data
+  }, [])
+
+  // Full load for the current selection
+  const fetchEntries = useCallback(async () => {
+    const selection = ++selectionRef.current
+    setLoading(true)
+    setError(null)
+    setPendingEntries([])
+
+    try {
+      const data = await loadEntries(entriesUrl())
+      if (selection !== selectionRef.current) return
+
+      setEntries(data)
+      // Mark which ones were unread at fetch time
+      setSessionUnreadIds(new Set<number>(data.filter(e => !e.isRead).map(e => e.id)))
+    } catch (err) {
+      if (selection !== selectionRef.current) return
+      setError(err instanceof Error ? err.message : 'Unknown error')
+      console.error('Failed to fetch entries:', err)
+    } finally {
+      if (selection === selectionRef.current) setLoading(false)
+    }
+  }, [entriesUrl, loadEntries])
+
+  useEffect(() => {
     fetchEntries()
     // Reset viewMode to unread when feed changes
     setViewMode('unread')
-  }, [feedId, folderId])
+  }, [fetchEntries])
+
+  // Put new entries at the top of the list and jump there
+  const showNewEntries = useCallback((fresh: Entry[]) => {
+    const known = new Set(entriesRef.current.map(e => e.id))
+    const toAdd = fresh.filter(e => !known.has(e.id))
+    if (toAdd.length > 0) {
+      scrollToTopRef.current = true
+      setEntries(prev => [...toAdd, ...prev])
+      setSessionUnreadIds(prev => {
+        const next = new Set(prev)
+        toAdd.filter(e => !e.isRead).forEach(e => next.add(e.id))
+        return next
+      })
+    }
+    setPendingEntries([])
+  }, [])
+
+  // Scroll before the browser paints and before the new cards' observers
+  // run, so cards inserted at the top are never seen as "scrolled past"
+  // (which would mark them read unseen).
+  useLayoutEffect(() => {
+    if (!scrollToTopRef.current) return
+    scrollToTopRef.current = false
+    const container = scrollContainerRef?.current
+    if (container) container.scrollTop = 0
+    else window.scrollTo(0, 0)
+  }, [entries, scrollContainerRef])
+
+  // Quiet reload after a refresh or when the tab becomes visible. The list is
+  // not reordered under the reader: new entries go on top, and only straight
+  // away when the list is scrolled to the top; otherwise a pill offers them.
+  const checkForNew = useCallback(async (forceShow: boolean) => {
+    const selection = selectionRef.current
+    try {
+      const data = await loadEntries(entriesUrl())
+      if (selection !== selectionRef.current) return
+
+      const known = new Set(entriesRef.current.map(e => e.id))
+      const fresh = data.filter(e => !known.has(e.id))
+
+      const container = scrollContainerRef?.current
+      const scrollTop = container ? container.scrollTop : window.scrollY
+      if (forceShow || scrollTop <= 50) {
+        showNewEntries(fresh)
+      } else {
+        setPendingEntries(fresh)
+      }
+    } catch (err) {
+      console.error('Failed to check for new entries:', err)
+    }
+  }, [entriesUrl, loadEntries, scrollContainerRef, showNewEntries])
+
+  useEffect(() => {
+    const onRefreshed = () => {
+      const forceShow = forceShowNewRef.current
+      forceShowNewRef.current = false
+      checkForNew(forceShow)
+    }
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') checkForNew(false)
+    }
+    window.addEventListener(REFRESHED_EVENT, onRefreshed)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.removeEventListener(REFRESHED_EVENT, onRefreshed)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [checkForNew])
+
+  // Clear the refresh result after a few seconds
+  useEffect(() => {
+    if (!refreshMessage) return
+    const timeout = setTimeout(() => setRefreshMessage(null), 6000)
+    return () => clearTimeout(timeout)
+  }, [refreshMessage])
+
+  const handleRefreshClick = async () => {
+    if (refreshing) return
+    setRefreshing(true)
+    setRefreshMessage(null)
+    forceShowNewRef.current = true
+    try {
+      const result = await refreshFeeds()
+      const errors = result.errors.length
+      setRefreshMessage({
+        text: `${result.refreshed} refreshed, ${errors} ${errors === 1 ? 'error' : 'errors'}`,
+        detail: errors > 0 ? result.errors.join('\n') : undefined,
+      })
+    } catch (err) {
+      forceShowNewRef.current = false
+      console.error('Refresh error:', err)
+      setRefreshMessage({ text: 'refresh_failed', detail: err instanceof Error ? err.message : undefined })
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   // Callback when an entry is marked as read - update local state
   // Must be before conditional returns to maintain hook order
@@ -189,22 +304,12 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
                   <div className="flex items-center gap-3">
                     <h2 className="font-bold text-accent-link truncate max-w-[300px] font-header" style={{ fontSize: 'var(--font-size-header)' }} title={displayName}>{displayName}</h2>
                     <button
-                      onClick={() => {
-                        setLoading(true);
-                        // Trigger fetchEntries by changing a dependency or re-running the effect
-                        const fetchUrl = `/api/entries?limit=1000${feedId ? `&feedId=${feedId}` : folderId ? `&folderId=${folderId}` : ''}`;
-                        fetch(fetchUrl, { cache: 'no-store' })
-                          .then(res => res.json())
-                          .then(data => {
-                            setEntries(data);
-                            setHadUnreadOnFetch(data.length > 0 && data.some((e: Entry) => !e.isRead));
-                            setLoading(false);
-                          });
-                      }}
-                      className="p-1.5 rounded-full hover:bg-white/10 text-text-dimmed hover:text-accent-link transition-colors"
-                      title="refresh"
+                      onClick={handleRefreshClick}
+                      disabled={refreshing}
+                      className="p-1.5 rounded-full hover:bg-white/10 text-text-dimmed hover:text-accent-link transition-colors disabled:cursor-wait"
+                      title="refresh_feeds"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
                     </button>
@@ -249,6 +354,13 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </button>
+                    {refreshing ? (
+                      <span className="text-xs text-text-dimmed whitespace-nowrap">refreshing...</span>
+                    ) : refreshMessage && (
+                      <span className="text-xs text-text-dimmed whitespace-nowrap" title={refreshMessage.detail}>
+                        {refreshMessage.text}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-4 ml-auto">
                     {/* View Mode Toggle */}
@@ -275,6 +387,16 @@ export default function EntryFeed({ feedId, folderId, selectedName, sidebarWidth
                 </div>
               </div>
             </div>
+            {pendingEntries.length > 0 && (
+              <div className="flex justify-center mt-3">
+                <button
+                  onClick={() => showNewEntries(pendingEntries)}
+                  className="text-sm font-semibold bg-accent-unread text-accent-unread-text px-4 py-1 rounded-full shadow-card hover:opacity-90 transition-opacity"
+                >
+                  {pendingEntries.length} new {pendingEntries.length === 1 ? 'article' : 'articles'}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Articles Container */}

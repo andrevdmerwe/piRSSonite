@@ -26,7 +26,9 @@ model Feed {
   lastFetched        DateTime?
   nextCheckAt        DateTime             @default(now())
   failureCount       Int                  @default(0)
-  isAvailable        Boolean              @default(true)
+  isAvailable        Boolean              @default(true)  // Manual pause; refresh failures no longer clear it
+  lastError          String?                                // Reason for the most recent failure; null after a success
+  lastErrorAt        DateTime?
   order              Int                  @default(0)
   customTitle        Boolean              @default(false)  // When true, don't overwrite title on refresh
   websubHub          String?
