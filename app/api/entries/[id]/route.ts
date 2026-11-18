@@ -37,7 +37,6 @@ export async function PUT(
       )
     }
 
-    console.log(`[API] Updating entry ${entryId} with:`, updateData)
 
     // Update entry in transaction
     const updatedEntry = await prisma.entry.update({
@@ -45,7 +44,6 @@ export async function PUT(
       data: updateData,
     })
 
-    console.log(`[API] Entry ${entryId} updated. isRead=${updatedEntry.isRead}`)
 
     return NextResponse.json(updatedEntry)
   } catch (error: any) {

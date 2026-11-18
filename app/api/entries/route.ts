@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: any = {}
 
-    console.log(`[API] Fetching entries. feedId=${feedId}, folderId=${folderId}`)
 
     if (feedId) {
       // Filter by specific feed
@@ -31,7 +30,6 @@ export async function GET(request: NextRequest) {
 
       if (feedIds.length === 0) {
         // Empty folder
-        console.log('[API] Empty folder')
         return NextResponse.json([])
       }
 
@@ -39,7 +37,6 @@ export async function GET(request: NextRequest) {
     }
     // If neither feedId nor folderId: all_items (no filter)
 
-    console.log('[API] Where clause:', JSON.stringify(where))
 
     // Fetch entries with feed information
     const entries = await prisma.entry.findMany({
@@ -60,7 +57,6 @@ export async function GET(request: NextRequest) {
       skip: offset,
     })
 
-    console.log(`[API] Found ${entries.length} entries`)
 
     return NextResponse.json(entries)
   } catch (error) {
